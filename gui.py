@@ -35,20 +35,12 @@ class AIOMediaTool:
         self.status_bar.config(font=self.status_bar_font)
         self.status_bar.configure(background="#f5f5f5")
 
-        # Restart Button
-   #     self.restart_button = ttk.Button(master, text="Restart", command=self.restart_app, style="CustomButton.TButton")
-    #    self.restart_button.pack(side="bottom", padx=0, pady=10)
 
         # Version Label
         self.version_label = ttk.Label(master, text="Version 2.3.3 @ vuthao.id.vn", anchor="e", style="CustomVersionLabel.TLabel")
         self.version_label.pack(side="bottom", fill="x", padx=10, pady=0)
         self.version_label.configure(background="#f5f5f5")
 
-  ##  def restart_app(self):
-  ##      self.master.destroy()
-  ##      root = Tk()
-  ##      app = AIOMediaTool(root)
-  ##      root.mainloop()
 
 root = Tk()
 app = AIOMediaTool(root)
