@@ -1,5 +1,5 @@
 yt-dlp==2024.12.3
-moviepy==2.1.1
-pillow==11.0.0
+moviepy
+pillow
 DateTime==5.5
 requests==2.32.3
