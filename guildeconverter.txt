@@ -1,0 +1,18 @@
+Hướng Dẫn Sử Dụng Ứng Dụng Chuyển Đổi Media
+
+1. Chọn tệp media cần chuyển đổi bằng cách nhấn vào nút "Chọn File".
+2. Chọn định dạng xuất mong muốn từ danh sách các định dạng hỗ trợ.
+3. Tùy chọn các thông số chuyển đổi như Bitrate, FPS, Độ phân giải và Codec video.
+   - Bitrate: Chọn giá trị mặc định hoặc nhập giá trị tùy chỉnh.
+   - FPS: Chọn giá trị mặc định hoặc nhập giá trị tùy chỉnh.
+   - Độ phân giải: Chọn giá trị mặc định hoặc nhập giá trị tùy chỉnh.
+   - Codec video: Chọn codec video mong muốn.
+4. Nhấn nút "Chuyển Đổi" để bắt đầu quá trình chuyển đổi.
+5. Theo dõi tiến trình chuyển đổi thông qua thanh tiến trình.
+6. Sau khi chuyển đổi thành công, tệp đầu ra sẽ được lưu trong thư mục "converted" trong cùng thư mục với ứng dụng.
+7. Nhấn nút "Mở thư mục xuất" để mở thư mục chứa tệp đầu ra.
+
+Lưu ý:
+- Ứng dụng sử dụng FFmpeg để thực hiện quá trình chuyển đổi media.
+- Một số định dạng và thiết lập tùy chỉnh có thể không được hỗ trợ hoặc có thể gặp lỗi trong quá trình chuyển đổi.
+- Vui lòng kiểm tra kết quả chuyển đổi và báo cáo bất kỳ lỗi nào cho nhà phát triển.
