@@ -71,7 +71,7 @@ class MediaConverter:
 
         self.codec_var = StringVar()
         self.codec_var.set("libx264")
-        self.codec_dropdown = ttk.Combobox(self.media_conversion_frame, textvariable=self.codec_var, values=["libx264", "libx265", "libvpx-vp9", "avc1.42E01E"], state="readonly", style="CustomCombobox.TCombobox")
+        self.codec_dropdown = ttk.Combobox(self.media_conversion_frame, textvariable=self.codec_var, values=["libx264", "libx265", "libvpx-vp9"], state="readonly", style="CustomCombobox.TCombobox")
         self.codec_dropdown.grid(row=6, column=1, padx=10, pady=5, sticky="we")
 
         self.convert_button = ttk.Button(self.media_conversion_frame, text="Chuyển Đổi", command=self.convert_media, style="CustomButton.TButton")
@@ -82,6 +82,7 @@ class MediaConverter:
 
         self.progress_bar = ttk.Progressbar(self.media_conversion_frame, mode='determinate', length=530)
         self.progress_bar.grid(row=8, column=0, columnspan=3, padx=10, pady=10, sticky="we")
+        
 
         # User Guide Button
         self.user_guide_button = ttk.Button(self.media_conversion_frame, text="Hướng Dẫn Sử Dụng", command=self.show_user_guide, style="CustomButton.TButton")
@@ -179,7 +180,7 @@ class MediaConverter:
                     self.app.status_bar.config(text="Lỗi: Không thể lấy thời lượng video.", style="CustomStatusBar.TLabel")
                     return
 
-                ffmpeg_command = ["ffmpeg", "-y", "-i", input_file]
+                ffmpeg_command = ["ffmpeg", "-y", "-hwaccel", "cuda", "-i", input_file]
 
                 if bitrate != "default":
                     if bitrate == "custom":
@@ -246,6 +247,7 @@ class MediaConverter:
             finally:
                 self.master.update()
                 self.progress_bar.config(value=0)
+
 
     def get_custom_bitrate(self):
         custom_bitrate = simpledialog.askstring("Tuỳ chỉnh Bitrate", "Nhập bitrate tùy chỉnh (kbps):")

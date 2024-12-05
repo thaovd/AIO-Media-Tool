@@ -6,7 +6,7 @@ from getinfo import get_video_info
 from io import BytesIO
 from PIL import Image, ImageTk
 import requests
-
+import re
 
 class YTDownloader:
     def __init__(self, master, app):
@@ -125,6 +125,13 @@ class YTDownloader:
                 response = requests.get(video_info['thumbnail'])
                 img_data = response.content
                 img = Image.open(BytesIO(img_data))
+
+                # Resize the thumbnail to fit the desired dimensions
+                if img.width > img.height:
+                    img = img.resize((120, 90), resample=Image.BICUBIC)
+                else:
+                    img = img.resize((90, 120), resample=Image.BICUBIC)
+
                 photo = ImageTk.PhotoImage(img)
                 self.thumbnail_label.configure(image=photo)
                 self.thumbnail_label.image = photo
@@ -389,7 +396,16 @@ class YTDownloader:
                 self.master.update()
                 return
 
-            output_file = f"{save_location}/%(title)s.%(id)s.%(ext)s"
+            # Get video information
+            ydl_opts = {}
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                info = ydl.extract_info(video_url, download=False)
+                title = info.get('title', 'Unknown')
+
+            # Sanitize the title to remove special characters
+            sanitized_title = self.sanitize_filename(title)
+            output_file = f"{save_location}/{sanitized_title}.%(id)s.%(ext)s"
+
             self.app.status_bar.config(text="Đang tải xuống...", style="CustomStatusBar.TLabel")
             self.master.update()
 
@@ -410,6 +426,12 @@ class YTDownloader:
         else:
             self.app.status_bar.config(text="Vui lòng chọn Folder lưu trước khi tải xuống.", style="CustomStatusBar.TLabel")
             self.master.update()
+
+    def sanitize_filename(self, filename):
+        """
+        Sanitize the filename by removing special characters that may cause issues when saving the file.
+        """
+        return re.sub(r'[^\w\-_\. ]', '_', filename)
 
     def open_folder(self):
         save_location = self.save_location_var.get()
@@ -433,6 +455,8 @@ class YTDownloader:
             self.master.update()
 
     def format_bytes(self, bytes):
+        if bytes is None:
+            return "N/A"
         suffixes = ['B', 'KB', 'MB', 'GB', 'TB']
         suffix_index = 0
         while bytes >= 1024 and suffix_index < len(suffixes) - 1:
@@ -450,3 +474,4 @@ class YTDownloader:
             return f"{hours:02d}:{minutes:02d}:{secs:02d}"
         else:
             return f"{minutes:02d}:{secs:02d}"
+

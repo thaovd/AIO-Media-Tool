@@ -7,7 +7,6 @@ from moviepy import VideoFileClip
 import sys
 import platform
 from tkinter import messagebox
-import codecs
 
 class VideoCutter:
     def __init__(self, master, app):
