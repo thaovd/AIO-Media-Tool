@@ -1,5 +1,1 @@
-- yt-dlp chưa ghép a+v thành 1 file
-- yt-dlp lỗi thumb tiktok
-- convert lỗi av1 codec
-- convert ko dùng gpu
 
