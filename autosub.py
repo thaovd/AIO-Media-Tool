@@ -14,6 +14,9 @@ import sys
 import tempfile
 import wave
 import shutil
+from tkinter import messagebox
+import multiprocessing
+
 
 from progressbar import ProgressBar, Percentage, Bar, ETA
 
@@ -23,40 +26,42 @@ from formatters import FORMATTERS
 
 
 class AutoSubGUI:
-    def __init__(self, master):
+    def __init__(self, master, status_bar_update_func):
         self.master = master
+        self.status_bar_update_func = status_bar_update_func
+        self.subtitle_generation_in_progress = False  # Flag to track subtitle generation status
 
         # File selection
-        self.file_label = tk.Label(master, text="Select media file:")
+        self.file_label = tk.Label(master, text="Chọn Media File:")
         self.file_label.grid(row=0, column=0, padx=10, pady=10)
 
         self.file_path = tk.StringVar()
-        self.file_entry = tk.Entry(master, textvariable=self.file_path, width=50)
+        self.file_entry = tk.Entry(master, textvariable=self.file_path, width=60)
         self.file_entry.grid(row=0, column=1, padx=10, pady=10)
 
-        self.file_button = tk.Button(master, text="Choose File", command=self.select_file)
+        self.file_button = tk.Button(master, text="Chọn file", command=self.select_file)
         self.file_button.grid(row=0, column=2, padx=10, pady=10)
 
         # Source language selection
-        self.src_label = tk.Label(master, text="Source Language:")
+        self.src_label = tk.Label(master, text="Ngôn ngữ Source:")
         self.src_label.grid(row=1, column=0, padx=10, pady=10)
 
         self.src_language = tk.StringVar()
-        self.src_language.set("vi")
-        self.src_dropdown = ttk.Combobox(master, textvariable=self.src_language, values=sorted(LANGUAGE_CODES.keys()))
+        self.src_language.set("Vietnamese")
+        self.src_dropdown = ttk.Combobox(master, textvariable=self.src_language, values=sorted(LANGUAGE_CODES.values()))
         self.src_dropdown.grid(row=1, column=1, padx=10, pady=10)
 
         # Destination language selection
-        self.dst_label = tk.Label(master, text="Destination Language:")
+        self.dst_label = tk.Label(master, text="Ngôn ngữ Subtitle:")
         self.dst_label.grid(row=2, column=0, padx=10, pady=10)
 
         self.dst_language = tk.StringVar()
-        self.dst_language.set("vi")
-        self.dst_dropdown = ttk.Combobox(master, textvariable=self.dst_language, values=sorted(LANGUAGE_CODES.keys()))
+        self.dst_language.set("Vietnamese")
+        self.dst_dropdown = ttk.Combobox(master, textvariable=self.dst_language, values=sorted(LANGUAGE_CODES.values()))
         self.dst_dropdown.grid(row=2, column=1, padx=10, pady=10)
 
         # Submit button
-        self.submit_button = tk.Button(master, text="Generate Subtitles", command=self.submit)
+        self.submit_button = tk.Button(master, text="Tạo Subtitles", command=self.submit)
         self.submit_button.grid(row=3, column=1, padx=10, pady=10)
 
     def select_file(self):
@@ -64,11 +69,22 @@ class AutoSubGUI:
         self.file_path.set(file_path)
 
     def submit(self):
-        source_path = self.file_path.get()
-        source_lang = self.src_language.get()
-        dst_lang = self.dst_language.get()
-        main(source_path, source_lang, dst_lang)
+        if self.subtitle_generation_in_progress:
+            self.status_bar_update_func("Subtitle generation is already in progress, please wait...")
+            return
 
+        source_path = self.file_path.get()
+        source_lang = next(k for k, v in LANGUAGE_CODES.items() if v == self.src_language.get())
+        dst_lang = next(k for k, v in LANGUAGE_CODES.items() if v == self.dst_language.get())
+        self.status_bar_update_func("Generating subtitles, please wait...")
+        self.subtitle_generation_in_progress = True
+        main(source_path, source_lang, dst_lang, self.status_bar_update_func, self.show_completion_notification)
+
+        
+    def show_completion_notification(self):
+        self.subtitle_generation_in_progress = False  # Reset the flag to indicate subtitle generation is complete
+        messagebox.showinfo("Subtitle Generation Complete", "Subtitles have been generated successfully and saved in the same location as the media file.")
+        self.status_bar_update_func("")
 
 def percentile(arr, percent):
     arr = sorted(arr)
@@ -224,7 +240,7 @@ def find_speech_regions(filename, frame_width=4096, min_region_size=0.5, max_reg
     return regions
 
 
-def main(source_path, source_lang, dst_lang):
+def main(source_path, source_lang, dst_lang, status_bar_update_func, completion_notification_func):
     parser = argparse.ArgumentParser()
     parser.add_argument('-C', '--concurrency', help="Number of concurrent API requests to make", type=int, default=10)
     parser.add_argument('-F', '--format', help="Destination subtitle format", default="srt")
@@ -249,17 +265,21 @@ def main(source_path, source_lang, dst_lang):
 
     if args.format not in FORMATTERS.keys():
         print("Subtitle format not supported. Run with --list-formats to see all supported formats.")
+        status_bar_update_func("Subtitle format not supported.")
         return 1
 
     if source_lang not in LANGUAGE_CODES.keys():
         print("Source language not supported. Run with --list-languages to see all supported languages.")
+        status_bar_update_func("Source language not supported.")
         return 1
 
     if dst_lang not in LANGUAGE_CODES.keys():
         print(
             "Destination language not supported. Run with --list-languages to see all supported languages.")
+        status_bar_update_func("Destination language not supported.")
         return 1
 
+    status_bar_update_func("Processing, please wait...")  # Update the status bar first
     audio_filename, audio_rate = extract_audio(source_path)
 
     regions = find_speech_regions(audio_filename)
@@ -271,6 +291,7 @@ def main(source_path, source_lang, dst_lang):
     transcripts = []
     if regions:
         try:
+            status_bar_update_func("Converting speech regions to FLAC files...")
             widgets = ["Converting speech regions to FLAC files: ", Percentage(), ' ', Bar(), ' ', ETA()]
             pbar = ProgressBar(widgets=widgets, maxval=len(regions)).start()
             extracted_regions = []
@@ -279,6 +300,7 @@ def main(source_path, source_lang, dst_lang):
                 pbar.update(i)
             pbar.finish()
 
+            status_bar_update_func("Performing speech recognition...")
             widgets = ["Performing speech recognition: ", Percentage(), ' ', Bar(), ' ', ETA()]
             pbar = ProgressBar(widgets=widgets, maxval=len(regions)).start()
 
@@ -293,7 +315,7 @@ def main(source_path, source_lang, dst_lang):
                     google_translate_api_key = args.api_key
                     translator = Translator(dst_lang, google_translate_api_key, dst=dst_lang,
                                             src=source_lang)
-                    prompt = "Translating from {0} to {1}: ".format(source_lang, dst_lang)
+                    prompt = "Translating from {0} to {1}: ".format(LANGUAGE_CODES[source_lang], LANGUAGE_CODES[dst_lang])
                     widgets = [prompt, Percentage(), ' ', Bar(), ' ', ETA()]
                     pbar = ProgressBar(widgets=widgets, maxval=len(regions)).start()
                     translated_transcripts = []
@@ -303,30 +325,49 @@ def main(source_path, source_lang, dst_lang):
                     pbar.finish()
                     transcripts = translated_transcripts
                 else:
+                    status_bar_update_func("Google Translate API key is required for translation.")
                     return 1
 
         except KeyboardInterrupt:
             pbar.finish()
             pool.terminate()
             pool.join()
+            status_bar_update_func("Processing interrupted.")
             return 1
+        except Exception as e:
+            status_bar_update_func(f"Error: {str(e)}")
+            return 1
+        finally:
+            if os.path.exists(audio_filename):
+                os.remove(audio_filename)
 
-    timed_subtitles = [(r, t) for r, t in zip(regions, transcripts) if t]
-    formatter = FORMATTERS.get(args.format)
-    formatted_subtitles = formatter(timed_subtitles)
+        timed_subtitles = [(r, t) for r, t in zip(regions, transcripts) if t]
+        formatter = FORMATTERS.get(args.format)
+        formatted_subtitles = formatter(timed_subtitles)
 
-    base, ext = os.path.splitext(source_path)
-    dest = "{base}.{format}".format(base=base, format=args.format)
+        base, ext = os.path.splitext(source_path)
+        dest = "{base}.{format}".format(base=base, format=args.format)
 
-    with open(dest, 'wb') as f:
-        f.write(formatted_subtitles.encode("utf-8"))
+        with open(dest, 'wb') as f:
+            f.write(formatted_subtitles.encode("utf-8"))
 
-    flac_dest = "{base}.flac".format(base=base)
-    os.rename(audio_filename, flac_dest)
+        flac_dest = "{base}.flac".format(base=base)
+        if os.path.exists(flac_dest):
+            os.remove(flac_dest)
 
-    # Automatically delete the .flac file when finished
-    os.remove(flac_dest)
+        status_bar_update_func("Subtitle đã được tạo thành công!.")
+        completion_notification_func()
+        return 0
 
-    return 0
+    if __name__ == "__main__":
+        if getattr(sys, 'frozen', False):
+            # Running as a compiled executable
+            os.chdir(os.path.dirname(sys.executable))
+        else:
+            # Running as a script
+            os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-
+        multiprocessing.freeze_support()
+        root = tk.Tk()
+        app = AutoSubGUI(root, update_status_bar)
+        root.mainloop()

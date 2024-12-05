@@ -1,3 +1,4 @@
+
 import os
 from tkinter import Tk, ttk, StringVar
 from tkinter.constants import END
@@ -23,7 +24,7 @@ class AIOMediaTool:
 
         # Set icon ứng dụng
         try:
-            self.master.iconbitmap(os.path.join(os.path.dirname(__file__), 'icon.ico'))
+            self.master.iconbitmap(os.path.join(os.path.dirname(__file__), 'icon.ico'))       
         except:
             print("Không load được icon.")
 
@@ -54,7 +55,7 @@ class AIOMediaTool:
         # AutoSub tab
         self.autosub_tab = ttk.Frame(self.feature_selection_tab)
         self.feature_selection_tab.add(self.autosub_tab, text="AutoSub")
-        self.autosub = AutoSubGUI(self.autosub_tab)
+        self.autosub = AutoSubGUI(self.autosub_tab, self.update_status_bar)  # Pass the status bar update function
 
         # Settings tab
         self.settings_tab = ttk.Frame(self.feature_selection_tab)
@@ -129,7 +130,8 @@ class AIOMediaTool:
         self.status_bar.config(text=text)
         self.status_bar_update_time = time.time()
 
+if __name__ == "__main__":
+    root = Tk()
+    app = AIOMediaTool(root)
+    root.mainloop()
 
-root = Tk()
-app = AIOMediaTool(root)
-root.mainloop()
