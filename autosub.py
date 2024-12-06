@@ -1,29 +1,21 @@
+import os
+import sys
 import tkinter as tk
-from tkinter import ttk
-from tkinter import filedialog
+from tkinter import ttk, filedialog, messagebox
 import argparse
 import audioop
 from googleapiclient.discovery import build
 import json
 import math
 import multiprocessing
-import os
 import requests
 import subprocess
-import sys
 import tempfile
 import wave
-import shutil
-from tkinter import messagebox
-import multiprocessing
-
-
 from progressbar import ProgressBar, Percentage, Bar, ETA
 
-from constants import LANGUAGE_CODES, \
-    GOOGLE_SPEECH_API_KEY, GOOGLE_SPEECH_API_URL
+from constants import LANGUAGE_CODES, GOOGLE_SPEECH_API_KEY, GOOGLE_SPEECH_API_URL
 from formatters import FORMATTERS
-
 
 class AutoSubGUI:
     def __init__(self, master, status_bar_update_func):
@@ -80,11 +72,10 @@ class AutoSubGUI:
         self.subtitle_generation_in_progress = True
         main(source_path, source_lang, dst_lang, self.status_bar_update_func, self.show_completion_notification)
 
-        
     def show_completion_notification(self):
         self.subtitle_generation_in_progress = False  # Reset the flag to indicate subtitle generation is complete
-        messagebox.showinfo("Subtitle Generation Complete", "Subtitles have been generated successfully and saved in the same location as the media file.")
-        self.status_bar_update_func("")
+        messagebox.showinfo("Đã tạo subtitle", "Đã tạo Subtitle thành công, file subtitle được nằm trong cùng thư mục file ban đầu.")
+        self.status_bar_update_func("Hoàn thành")
 
 def percentile(arr, percent):
     arr = sorted(arr)
@@ -96,10 +87,8 @@ def percentile(arr, percent):
     d1 = arr[int(c)] * (k - f)
     return d0 + d1
 
-
 def is_same_language(lang1, lang2):
     return lang1.split("-")[0] == lang2.split("-")[0]
-
 
 class FLACConverter(object):
     def __init__(self, source_path, include_before=0.25, include_after=0.25):
@@ -130,7 +119,6 @@ class FLACConverter(object):
             if os.path.exists(temp.name):
                 temp.close()
                 os.remove(temp.name)
-
 
 class SpeechRecognizer(object):
     def __init__(self, language="en", rate=44100, retries=3, api_key=GOOGLE_SPEECH_API_KEY):
@@ -164,7 +152,6 @@ class SpeechRecognizer(object):
         except KeyboardInterrupt:
             return
 
-
 class Translator(object):
     def __init__(self, language, api_key, src, dst):
         self.language = language
@@ -190,17 +177,36 @@ class Translator(object):
         except KeyboardInterrupt:
             return
 
-
 def extract_audio(filename, channels=1, rate=16000):
     temp = tempfile.NamedTemporaryFile(suffix='.wav', delete=False)
     if not os.path.isfile(filename):
         raise Exception("Invalid filepath: {0}".format(filename))
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    ffmpeg_path = os.path.join(script_dir, "ffmpeg.exe")
-    command = [ffmpeg_path, "-y", "-i", filename, "-ac", str(channels), "-ar", str(rate), "-loglevel", "error", temp.name]
-    subprocess.check_output(command, stdin=open(os.devnull))
-    return temp.name, rate
 
+    # Get the full path to the ffmpeg executable
+    if getattr(sys, 'frozen', False):
+        # If the application is running as a PyInstaller bundle
+        script_dir = os.path.dirname(sys.executable)
+    else:
+        # If the application is running from the source code
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+
+    ffmpeg_path = os.path.join(script_dir, "ffmpeg", "ffmpeg.exe")
+
+    if not os.path.exists(ffmpeg_path):
+        # If the ffmpeg executable is not found in the expected location, try to find it in the system PATH
+        try:
+            ffmpeg_path = subprocess.check_output(["where", "ffmpeg"], universal_newlines=True).strip()
+        except subprocess.CalledProcessError:
+            print("Error: ffmpeg executable not found. Please ensure ffmpeg is installed and available in the system PATH.")
+            raise Exception("ffmpeg executable not found")
+
+    command = [ffmpeg_path, "-y", "-i", filename, "-ac", str(channels), "-ar", str(rate), "-loglevel", "error", temp.name]
+    try:
+        subprocess.check_output(command, stdin=open(os.devnull))
+    except subprocess.CalledProcessError as e:
+        print(f"Error running ffmpeg: {e}")
+        raise e
+    return temp.name, rate
 
 def find_speech_regions(filename, frame_width=4096, min_region_size=0.5, max_region_size=6):
     reader = wave.open(filename)
@@ -238,7 +244,6 @@ def find_speech_regions(filename, frame_width=4096, min_region_size=0.5, max_reg
             region_start = elapsed_time
         elapsed_time += chunk_duration
     return regions
-
 
 def main(source_path, source_lang, dst_lang, status_bar_update_func, completion_notification_func):
     parser = argparse.ArgumentParser()
@@ -293,21 +298,24 @@ def main(source_path, source_lang, dst_lang, status_bar_update_func, completion_
         try:
             status_bar_update_func("Converting speech regions to FLAC files...")
             widgets = ["Converting speech regions to FLAC files: ", Percentage(), ' ', Bar(), ' ', ETA()]
-            pbar = ProgressBar(widgets=widgets, maxval=len(regions)).start()
+            pbar = ProgressBar(widgets=widgets, maxval=len(regions) if regions else 1)  # Set maxval to 1 if regions is empty
+            pbar.start()
+
             extracted_regions = []
             for i, extracted_region in enumerate(pool.imap(converter, regions)):
                 extracted_regions.append(extracted_region)
-                pbar.update(i)
+                pbar.update(i + 1)
             pbar.finish()
 
             status_bar_update_func("Performing speech recognition...")
             widgets = ["Performing speech recognition: ", Percentage(), ' ', Bar(), ' ', ETA()]
-            pbar = ProgressBar(widgets=widgets, maxval=len(regions)).start()
+            pbar = ProgressBar(widgets=widgets, maxval=len(regions) if regions else 1)  # Set maxval to 1 if regions is empty
+            pbar.start()
 
             for i, transcript in enumerate(pool.imap(recognizer, extracted_regions)):
                 if transcript:
                     transcripts.append(transcript)
-                pbar.update(i)
+                pbar.update(i + 1)
             pbar.finish()
 
             if not is_same_language(source_lang, dst_lang):
@@ -332,11 +340,7 @@ def main(source_path, source_lang, dst_lang, status_bar_update_func, completion_
             pbar.finish()
             pool.terminate()
             pool.join()
-            status_bar_update_func("Processing interrupted.")
-            return 1
-        except Exception as e:
-            status_bar_update_func(f"Error: {str(e)}")
-            return 1
+            
         finally:
             if os.path.exists(audio_filename):
                 os.remove(audio_filename)
@@ -347,6 +351,7 @@ def main(source_path, source_lang, dst_lang, status_bar_update_func, completion_
 
         base, ext = os.path.splitext(source_path)
         dest = "{base}.{format}".format(base=base, format=args.format)
+
 
         with open(dest, 'wb') as f:
             f.write(formatted_subtitles.encode("utf-8"))
@@ -361,13 +366,15 @@ def main(source_path, source_lang, dst_lang, status_bar_update_func, completion_
 
     if __name__ == "__main__":
         if getattr(sys, 'frozen', False):
-            # Running as a compiled executable
-            os.chdir(os.path.dirname(sys.executable))
+            # If the application is running as a PyInstaller bundle
+            script_dir = os.path.dirname(sys.executable)
         else:
-            # Running as a script
-            os.chdir(os.path.dirname(os.path.abspath(__file__)))
+            # If the application is running from the source code
+            script_dir = os.path.dirname(os.path.abspath(__file__))
 
-        multiprocessing.freeze_support()
+        # Add the ffmpeg directory to the system PATH
+        os.environ['PATH'] += os.pathsep + os.path.join(script_dir, "ffmpeg")
+
         root = tk.Tk()
-        app = AutoSubGUI(root, update_status_bar)
+        app = AutoSubGUI(root, status_bar_update_func=lambda msg: print(msg))
         root.mainloop()

@@ -12,6 +12,8 @@ import json
 from tkinter.messagebox import showinfo
 import time
 from autosub import AutoSubGUI
+import multiprocessing
+
 
 class AIOMediaTool:
     def __init__(self, master):
@@ -52,10 +54,6 @@ class AIOMediaTool:
         self.feature_selection_tab.add(self.media_converter_tab, text="Media Converter")
         self.media_converter = MediaConverter(self.media_converter_tab, self)
 
-        # AutoSub tab
-        self.autosub_tab = ttk.Frame(self.feature_selection_tab)
-        self.feature_selection_tab.add(self.autosub_tab, text="AutoSub")
-        self.autosub = AutoSubGUI(self.autosub_tab, self.update_status_bar)  # Pass the status bar update function
 
         # Settings tab
         self.settings_tab = ttk.Frame(self.feature_selection_tab)
@@ -88,7 +86,7 @@ class AIOMediaTool:
         self.startup_tab_label.grid(row=0, column=0, padx=10, pady=10, sticky="w")
 
         self.startup_tab_combobox = ttk.Combobox(self.settings_tab, textvariable=self.startup_tab_var, state="readonly")
-        self.startup_tab_combobox["values"] = ["Cắt Video", "Social DL", "GG Drive Video DL", "Media Converter", "AutoSub"]
+        self.startup_tab_combobox["values"] = ["Cắt Video", "Social DL", "GG Drive Video DL", "Media Converter"]
         self.startup_tab_combobox.grid(row=0, column=1, padx=10, pady=10)
 
         self.save_settings_button = ttk.Button(self.settings_tab, text="Save Settings", command=self.save_settings)
@@ -131,6 +129,8 @@ class AIOMediaTool:
         self.status_bar_update_time = time.time()
 
 if __name__ == "__main__":
+
+    multiprocessing.freeze_support()
     root = Tk()
     app = AIOMediaTool(root)
     root.mainloop()
