@@ -1,5 +1,7 @@
 yt-dlp==2024.12.3
 moviepy
-pillow
-DateTime==5.5
-requests==2.32.3
+requests
+google-api-python-client==2.154.0
+progressbar
+pysrt
+six

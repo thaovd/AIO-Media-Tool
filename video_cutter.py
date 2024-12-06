@@ -160,14 +160,20 @@ class VideoCutter:
                 self.master.update()
 
                 try:
-                    # Ẩn ffmpeg console
-                    if sys.platform.startswith('win'):
-                        startupinfo = subprocess.STARTUPINFO()
-                        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-                        process = subprocess.Popen(["ffmpeg", "-ss", start_time, "-to", end_time, "-y", "-i", file_path, "-acodec", "copy", "-vcodec", "copy", "-async", "1", output_file], startupinfo=startupinfo, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, errors='replace')
-                    else:
-                        process = subprocess.Popen(["ffmpeg", "-ss", start_time, "-to", end_time, "-y", "-i", file_path, "-acodec", "copy", "-vcodec", "copy", "-async", "1", output_file], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, errors='replace')
+                    # Determine the path to the ffmpeg executable
+                    script_dir = os.path.dirname(os.path.abspath(__file__))
+                    ffmpeg_path = os.path.join(script_dir, 'ffmpeg.exe')
+                    if platform.system() == 'Windows':
 
+                    # Ẩn ffmpeg console
+                        if sys.platform.startswith('win'):
+                            startupinfo = subprocess.STARTUPINFO()
+                            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                            process = subprocess.Popen([ffmpeg_path, "-ss", start_time, "-to", end_time, "-y", "-i", file_path, "-acodec", "copy", "-vcodec", "copy", "-async", "1", output_file], startupinfo=startupinfo, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, errors='replace')
+                        else:
+                            process = subprocess.Popen([ffmpeg_path, "-ss", start_time, "-to", end_time, "-y", "-i", file_path, "-acodec", "copy", "-vcodec", "copy", "-async", "1", output_file], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, errors='replace')
+                        
+                    
                     # Theo dõi và cập nhật progress bar
                     current_duration = 0
                     while True:

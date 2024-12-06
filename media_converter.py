@@ -3,6 +3,7 @@ import subprocess
 from tkinter import ttk, StringVar, filedialog, simpledialog, Toplevel, Text, BOTH, WORD
 from tkinter.constants import END
 from get_total_time_video import get_video_duration
+import sys
 
 class MediaConverter:
     def __init__(self, master, app):
@@ -180,7 +181,11 @@ class MediaConverter:
                     self.app.status_bar.config(text="Lỗi: Không thể lấy thời lượng video.", style="CustomStatusBar.TLabel")
                     return
 
-                ffmpeg_command = ["ffmpeg", "-y", "-hwaccel", "cuda", "-i", input_file]
+                # Determine the path to the ffmpeg executable
+                script_dir = os.path.dirname(os.path.abspath(__file__))
+                ffmpeg_path = os.path.join(script_dir, 'ffmpeg.exe')
+
+                ffmpeg_command = [ffmpeg_path, "-y", "-hwaccel", "cuda", "-i", input_file]
 
                 if bitrate != "default":
                     if bitrate == "custom":

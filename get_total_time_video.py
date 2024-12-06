@@ -1,27 +1,30 @@
 import subprocess
 import os
 import datetime
+import sys
 
 def get_video_duration(video_file):
     try:
-        output = subprocess.check_output(['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'default=noprint_wrappers=1:nokey=1', video_file])
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        ffmpeg_path = os.path.join(script_dir, "ffprobe.exe")
+        output = subprocess.check_output([ffmpeg_path, '-v', 'error', '-show_entries', 'format=duration', '-of', 'default=noprint_wrappers=1:nokey=1', video_file])
         duration_seconds = float(output.decode().strip())
         return datetime.timedelta(seconds=duration_seconds)
     except subprocess.CalledProcessError as e:
-        print(f"Lỗi khi lấy thời lượng video: Command '{e.cmd}' exit status {e.returncode}.")
+        print(f"Error getting video duration: Command '{e.cmd}' exit status {e.returncode}.")
         return None
     except (ValueError, OSError, IOError) as e:
-        print(f"Lỗi khi lấy thời lượng video: {e}")
+        print(f"Error getting video duration: {e}")
         return None
 
 if __name__ == "__main__":
-    video_file = input("Nhập link file video: ")
+    video_file = input("Enter video file path: ")
     if not os.path.exists(video_file):
-        print(f"Lỗi: File '{video_file}' không tồn tại.")
+        print(f"Error: File '{video_file}' does not exist.")
         exit(1)
     
     duration = get_video_duration(video_file)
     if duration:
         print(f"{duration}")
     else:
-        print("Lỗi khi lấy thời lượng video.")
+        print("Error getting video duration.")
