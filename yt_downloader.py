@@ -8,6 +8,9 @@ from PIL import Image, ImageTk
 import requests
 import re
 
+script_dir = os.path.dirname(os.path.abspath(__file__))
+ffmpeg_path = os.path.join(script_dir, 'ffmpeg.exe')
+
 class YTDownloader:
     def __init__(self, master, app):
         self.master = master
@@ -114,7 +117,7 @@ class YTDownloader:
             self.app.status_bar.config(text="", style="CustomStatusBar.TLabel")
             self.master.update()
 
-    #Khối xử lý lấy thông tin video
+    # Khối xử lý lấy thông tin video
     def update_video_info(self, video_info):
         self.thumbnail_label.configure(image=None) 
         self.thumbnail_label.image = None 
@@ -222,7 +225,6 @@ class YTDownloader:
             self.app.status_bar.config(text="Vui lòng chọn Folder lưu trước khi tải xuống.", style="CustomStatusBar.TLabel")
             self.master.update()
 
-
     def show_custom_download_popup(self):
         video_url = self.yt_url_entry.get()
         if video_url:
@@ -298,6 +300,7 @@ class YTDownloader:
                     'no_warnings': True,
                     'ignoreerrors': True,
                     'progress_hooks': [self.show_progress],
+                    'ffmpeg_location': ffmpeg_path,
                 }
                 with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                     ydl.download([video_url])
@@ -332,6 +335,7 @@ class YTDownloader:
                     'ignoreerrors': True,
                     'progress_hooks': [self.show_progress],
                     'cookiefile': 'cookies.txt',
+                    'ffmpeg_location': ffmpeg_path,
                 }
                 with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                     ydl.download([video_url])
@@ -371,6 +375,7 @@ class YTDownloader:
                             'no_warnings': True,
                             'ignoreerrors': True,
                             'progress_hooks': [self.show_progress],
+                            'ffmpeg_location': ffmpeg_path,
                         }
                         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                             ydl.download([video_url])
@@ -417,6 +422,7 @@ class YTDownloader:
                     'no_warnings': True,
                     'ignoreerrors': True,
                     'progress_hooks': [self.show_progress],
+                    'ffmpeg_location': ffmpeg_path,
                 }
                 with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                     ydl.download([video_url])
@@ -474,4 +480,3 @@ class YTDownloader:
             return f"{hours:02d}:{minutes:02d}:{secs:02d}"
         else:
             return f"{minutes:02d}:{secs:02d}"
-
