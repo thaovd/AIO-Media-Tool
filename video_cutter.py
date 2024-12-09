@@ -230,7 +230,7 @@ class VideoCutter:
             minutes = (minutes - 1) % 60
         elif time_part == "second":
             seconds = (seconds - 1) % 60
-            time_var.set(f"{hours:02d}:{minutes:02d}:{seconds:02d}")
+        time_var.set(f"{hours:02d}:{minutes:02d}:{seconds:02d}")
 
     #Xử lý open folder
     def open_output_folder(self):

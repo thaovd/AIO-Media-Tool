@@ -17,7 +17,7 @@ class YTDownloader:
         self.app = app
 
         # Input Select Frame
-        self.yt_downloader_frame = ttk.LabelFrame(master, text="Tiktok, YouTube, Facebook Downloader v.v..", style="CustomLabelFrame.TLabelframe")
+        self.yt_downloader_frame = ttk.LabelFrame(master, text="Tiktok, YouTube, Facebook, Drive Downloader v.v..", style="CustomLabelFrame.TLabelframe")
         self.yt_downloader_frame.pack(padx=20, pady=20, fill="both", expand=True)
 
         self.yt_url_label = ttk.Label(self.yt_downloader_frame, text="Link Video:", style="CustomSmallLabel.TLabel")
@@ -104,12 +104,82 @@ class YTDownloader:
             if 'list=' in video_url:
                 self.app.status_bar.config(text="URL playlist. Sử dụng tính năng Download Playlist.", style="CustomStatusBar.TLabel")
                 self.master.update()
+                self.custom_download_button.config(state='disabled')
+                self.audio_only_button.config(state='disabled')
+                self.video_only_button.config(state='disabled')
+                self.audio_video_button.config(state='disabled')
+                self.tiktok_button.config(state='disabled')
+                self.m3u8_button.config(state='disabled')
+                self.playlist_download_button.config(state='normal')
+                
                 return
+
+            # Kiểm tra xem URL có phải là Google Drive không
+            if 'drive.google.com' in video_url:
+                self.app.status_bar.config(text="Đang lấy thông tin video...", style="CustomStatusBar.TLabel")
+                self.master.update()
+                video_info = get_video_info(video_url)
+                self.update_video_info(video_info)
+                self.app.status_bar.config(text="URL Google Drive. Sử dụng tính năng 'Lựa chọn chất lượng khác' để tải xuống.", style="CustomStatusBar.TLabel")
+                self.master.update()
+                self.custom_download_button.config(state='normal')
+                self.audio_only_button.config(state='disabled')
+                self.video_only_button.config(state='disabled')
+                self.audio_video_button.config(state='disabled')
+                self.tiktok_button.config(state='disabled')
+                self.m3u8_button.config(state='disabled')
+                self.playlist_download_button.config(state='disabled')
+                return
+            if 'tiktok.com' in video_url:
+                self.app.status_bar.config(text="Đang lấy thông tin video...", style="CustomStatusBar.TLabel")
+                self.master.update()
+                video_info = get_video_info(video_url)
+                self.update_video_info(video_info)
+                self.app.status_bar.config(text="", style="CustomStatusBar.TLabel")
+                self.master.update()
+                self.custom_download_button.config(state='normal')
+                self.audio_only_button.config(state='disabled')
+                self.video_only_button.config(state='disabled')
+                self.audio_video_button.config(state='disabled')
+                self.tiktok_button.config(state='normal')
+                self.m3u8_button.config(state='disabled')
+                self.playlist_download_button.config(state='disabled')
+                return
+            if 'youtube.com' in video_url:
+                self.app.status_bar.config(text="Đang lấy thông tin video...", style="CustomStatusBar.TLabel")
+                self.master.update()
+                video_info = get_video_info(video_url)
+                self.update_video_info(video_info)
+                self.app.status_bar.config(text="", style="CustomStatusBar.TLabel")
+                self.master.update()
+                self.custom_download_button.config(state='normal')
+                self.audio_only_button.config(state='normal')
+                self.video_only_button.config(state='normal')
+                self.audio_video_button.config(state='normal')
+                self.tiktok_button.config(state='disabled')
+                self.m3u8_button.config(state='disabled')
+                self.playlist_download_button.config(state='disabled')
+                return
+            if 'facebook.com' in video_url:
+                self.app.status_bar.config(text="Đang lấy thông tin video...", style="CustomStatusBar.TLabel")
+                self.master.update()
+                video_info = get_video_info(video_url)
+                self.update_video_info(video_info)
+                self.app.status_bar.config(text="", style="CustomStatusBar.TLabel")
+                self.master.update()
+                self.custom_download_button.config(state='normal')
+                self.audio_only_button.config(state='normal')
+                self.video_only_button.config(state='normal')
+                self.audio_video_button.config(state='normal')
+                self.tiktok_button.config(state='disabled')
+                self.m3u8_button.config(state='disabled')
+                self.playlist_download_button.config(state='disabled')
+                return
+
 
             # Hiển thị thông báo "Đang lấy thông tin video" trên thanh trạng thái
             self.app.status_bar.config(text="Đang lấy thông tin video...", style="CustomStatusBar.TLabel")
             self.master.update()
-
             video_info = get_video_info(video_url)
             self.update_video_info(video_info)
 
@@ -211,6 +281,7 @@ class YTDownloader:
             self.app.status_bar.config(text="Vui lòng chọn Folder lưu trước khi tải xuống.", style="CustomStatusBar.TLabel")
             self.master.update()
 
+
     def download_audio_and_video(self):
         if self.save_location_var.get():
             self.download_video(format='bv*[ext=mp4]+ba')
@@ -226,6 +297,12 @@ class YTDownloader:
             self.master.update()
 
     def show_custom_download_popup(self):
+        # Check if save location is selected
+        if not self.save_location_var.get():
+            self.app.status_bar.config(text="Vui lòng chọn Folder lưu trước khi tải xuống.", style="CustomStatusBar.TLabel")
+            self.master.update()
+            return
+
         video_url = self.yt_url_entry.get()
         if video_url:
             # Kiểm tra xem URL có phải là playlist không
@@ -234,8 +311,18 @@ class YTDownloader:
                 self.master.update()
                 return
 
+
             self.custom_download_popup = Toplevel(self.master)
             self.custom_download_popup.title("Lựa chọn chất lượng Video")
+
+            # Căn giữa cửa sổ
+            screen_width = self.custom_download_popup.winfo_screenwidth()
+            screen_height = self.custom_download_popup.winfo_screenheight()
+            window_width = 400
+            window_height = 200
+            x = (screen_width - window_width) // 2
+            y = (screen_height - window_height) // 2
+            self.custom_download_popup.geometry(f"{window_width}x{window_height}+{x}+{y}")
 
             # Hiển thị thông báo "Đang lấy dữ liệu video" trong khi tải dữ liệu
             self.custom_download_popup.protocol("WM_DELETE_WINDOW", self.on_custom_download_popup_close)
@@ -322,6 +409,12 @@ class YTDownloader:
                 self.master.update()
                 return
 
+            # Kiểm tra xem URL có phải là Google Drive không
+            if 'drive.google.com' in video_url:
+                self.app.status_bar.config(text="Đây là URL Google Drive. Vui lòng sử dụng tính năng 'Lựa chọn chất lượng khác' để tải xuống.", style="CustomStatusBar.TLabel")
+                self.master.update()
+                return
+
             output_file = f"{save_location}/%(title)s.%(id)s.%(ext)s"
             self.app.status_bar.config(text="Đang tải xuống...", style="CustomStatusBar.TLabel")
             self.master.update()
@@ -401,6 +494,12 @@ class YTDownloader:
                 self.master.update()
                 return
 
+            # Kiểm tra xem URL có phải là Google Drive không
+            if 'drive.google.com' in video_url:
+                self.app.status_bar.config(text="Đây là URL Google Drive. Vui lòng sử dụng tính năng 'Lựa chọn chất lượng khác' để tải xuống.", style="CustomStatusBar.TLabel")
+                self.master.update()
+                return
+
             # Get video information
             ydl_opts = {}
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -446,6 +545,7 @@ class YTDownloader:
         else:
             self.app.status_bar.config(text="Chưa chọn Folder lưu.", style="CustomStatusBar.TLabel")
 
+
     def show_progress(self, progress):
         if progress['status'] == 'downloading':
             percentage = progress['_percent_str']
@@ -457,7 +557,7 @@ class YTDownloader:
                 self.progress_bar['value'] = progress['downloaded_bytes'] / progress['total_bytes_estimate'] * 100
             else:
                 self.progress_bar['value'] = 0 
-            self.app.status_bar.config(text=f"Đang tải xuống... {percentage} | Tốc độ: {download_speed}/s | Còn lại: {eta}")
+            self.app.status_bar.config(text=f"Đang tải xuống... | Tốc độ: {download_speed}/s | Còn lại: {eta}")
             self.master.update()
 
     def format_bytes(self, bytes):

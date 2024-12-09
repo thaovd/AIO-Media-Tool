@@ -1,11 +1,11 @@
-
 import os
+import subprocess
+import sys
 from tkinter import Tk, ttk, StringVar
 from tkinter.constants import END
 from video_cutter import VideoCutter
 from yt_downloader import YTDownloader
 from media_converter import MediaConverter
-from ggdrive_private_video_download import GGDriveDownloader
 import tkinter as tk
 from tkinter.font import Font
 import json
@@ -13,7 +13,6 @@ from tkinter.messagebox import showinfo
 import time
 from autosub import AutoSubGUI
 import multiprocessing
-
 
 class AIOMediaTool:
     def __init__(self, master):
@@ -44,10 +43,6 @@ class AIOMediaTool:
         self.feature_selection_tab.add(self.yt_downloader_tab, text="Social DL")
         self.yt_downloader = YTDownloader(self.yt_downloader_tab, self)
 
-        # Google Drive Downloader tab
-        self.ggdrive_downloader_tab = ttk.Frame(self.feature_selection_tab)
-        self.feature_selection_tab.add(self.ggdrive_downloader_tab, text="GG Drive Video DL")
-        self.ggdrive_downloader = GGDriveDownloader(self.ggdrive_downloader_tab, self)
 
         # Media Converter tab
         self.media_converter_tab = ttk.Frame(self.feature_selection_tab)
@@ -73,7 +68,8 @@ class AIOMediaTool:
         self.status_bar_update_time = time.time()  # Initialize the status bar update time
 
         # Version
-        self.version_label = ttk.Label(master, text="Version 2.4.2 @ vuthao.id.vn", anchor="e", style="VersionLabel.TLabel")
+        self.version = "2.4.4"
+        self.version_label = ttk.Label(master, text=f"Version {self.version} @ vuthao.id.vn", anchor="e", style="VersionLabel.TLabel")
         self.version_label.pack(side="bottom", fill="x", padx=10, pady=0)
         self.version_label.configure(background="#f5f5f5")
 
@@ -84,17 +80,33 @@ class AIOMediaTool:
         self.load_settings()
 
     def create_settings_tab(self):
-        # Giao diện cài đặt
+        # Existing settings tab code
         self.startup_tab_var = StringVar()
         self.startup_tab_label = ttk.Label(self.settings_tab, text="Trang khởi động mặc định:")
         self.startup_tab_label.grid(row=0, column=0, padx=10, pady=10, sticky="w")
 
         self.startup_tab_combobox = ttk.Combobox(self.settings_tab, textvariable=self.startup_tab_var, state="readonly")
-        self.startup_tab_combobox["values"] = ["Cắt Video", "Social DL", "GG Drive Video DL", "Media Converter", "AutoSub"]
+        self.startup_tab_combobox["values"] = ["Cắt Video", "Social DL", "Media Converter", "AutoSub"]
         self.startup_tab_combobox.grid(row=0, column=1, padx=10, pady=10)
 
         self.save_settings_button = ttk.Button(self.settings_tab, text="Save Settings", command=self.save_settings)
         self.save_settings_button.grid(row=1, column=0, columnspan=2, padx=10, pady=10)
+
+        # Add "Check for Update" button
+        self.check_update_button = ttk.Button(self.settings_tab, text="Check for Update", command=self.check_for_update)
+        self.check_update_button.grid(row=2, column=0, columnspan=2, padx=10, pady=10)
+
+    def check_for_update(self):
+        try:
+            # Run the update.exe application
+            subprocess.Popen(["update.exe"])
+            
+            # Close the current application
+            self.master.destroy()
+        except FileNotFoundError:
+            self.update_status_bar("Error: update.exe not found.")
+        except Exception as e:
+            self.update_status_bar(f"Error: {str(e)}")
 
     def load_settings(self):
         try:
@@ -115,7 +127,8 @@ class AIOMediaTool:
 
     def save_settings(self):
         config = {
-            "startup_tab": self.startup_tab_var.get()
+            "startup_tab": self.startup_tab_var.get(),
+            "version": self.version
         }
         with open("config.json", "w") as f:
             json.dump(config, f)
@@ -137,4 +150,3 @@ if __name__ == "__main__":
     root = Tk()
     app = AIOMediaTool(root)
     root.mainloop()
-

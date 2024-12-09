@@ -16,6 +16,7 @@ import wave
 import shutil
 from tkinter import messagebox
 import ctypes
+import time
 
 from progressbar import ProgressBar, Percentage, Bar, ETA
 
@@ -62,9 +63,17 @@ class AutoSubGUI:
         self.submit_button = tk.Button(master, text="Tạo Subtitles", command=self.submit)
         self.submit_button.grid(row=3, column=1, padx=10, pady=10)
 
+        # Open Save Folder button
+        self.open_folder_button = tk.Button(master, text="Mở thư mục lưu", command=self.open_save_folder)
+        self.open_folder_button.grid(row=4, column=1, padx=10, pady=10)
+
     def select_file(self):
         file_path = filedialog.askopenfilename(filetypes=[("Media Files", "*.mp4 *.avi *.mov *.wav *.mp3")])
         self.file_path.set(file_path)
+        if file_path:
+            self.status_bar_update_func("")
+        else:
+            self.status_bar_update_func("Chưa có file media nào được chọn.")
 
     def submit(self):
         if self.subtitle_generation_in_progress:
@@ -72,13 +81,28 @@ class AutoSubGUI:
             return
 
         source_path = self.file_path.get()
+        if not source_path:
+            self.status_bar_update_func("Chưa có file media nào được chọn.")
+            return
+
         source_lang = next(k for k, v in LANGUAGE_CODES.items() if v == self.src_language.get())
         dst_lang = next(k for k, v in LANGUAGE_CODES.items() if v == self.dst_language.get())
-        self.status_bar_update_func("Generating subtitles, please wait...")
+        self.status_bar_update_func("Đang phân tích và tạo subtitle...")
         self.subtitle_generation_in_progress = True
+        self.master.after(100, lambda: self.run_subtitle_generation(source_path, source_lang, dst_lang))
+
+    def run_subtitle_generation(self, source_path, source_lang, dst_lang):
         main(source_path, source_lang, dst_lang, self.status_bar_update_func, self.show_completion_notification)
 
-        
+    def open_save_folder(self):
+        source_path = self.file_path.get()
+        if source_path:
+            base, ext = os.path.splitext(source_path)
+            save_folder = os.path.dirname(base)
+            os.startfile(save_folder)
+        else:
+            self.status_bar_update_func("Chưa có file media nào được chọn.")
+
     def show_completion_notification(self):
         self.subtitle_generation_in_progress = False  # Reset the flag to indicate subtitle generation is complete
         messagebox.showinfo("Hoàn thành", "Subtitle đã tạo thành công, file srt được lưu cùng thư mục với file media.")
@@ -277,67 +301,68 @@ def main(source_path, source_lang, dst_lang, status_bar_update_func, completion_
         status_bar_update_func("Destination language not supported.")
         return 1
 
-    status_bar_update_func("Processing, please wait...")  # Update the status bar first
-    audio_filename, audio_rate = extract_audio(source_path)
+    try:
+        status_bar_update_func("Processing, please wait...")  # Update the status bar first
+        audio_filename, audio_rate = extract_audio(source_path)
 
-    regions = find_speech_regions(audio_filename)
+        regions = find_speech_regions(audio_filename)
 
-    pool = multiprocessing.Pool(args.concurrency)
-    converter = FLACConverter(source_path=audio_filename)
-    recognizer = SpeechRecognizer(language=source_lang, rate=audio_rate, api_key=GOOGLE_SPEECH_API_KEY)
+        pool = multiprocessing.Pool(args.concurrency)
+        converter = FLACConverter(source_path=audio_filename)
+        recognizer = SpeechRecognizer(language=source_lang, rate=audio_rate, api_key=GOOGLE_SPEECH_API_KEY)
 
-    transcripts = []
-    if regions:
-        try:
-            status_bar_update_func("Converting speech regions to FLAC files...")
-            widgets = ["Converting speech regions to FLAC files: ", Percentage(), ' ', Bar(), ' ', ETA()]
-            pbar = ProgressBar(widgets=widgets, maxval=len(regions)).start()
-            extracted_regions = []
-            for i, extracted_region in enumerate(pool.imap(converter, regions)):
-                extracted_regions.append(extracted_region)
-                pbar.update(i)
-            pbar.finish()
+        transcripts = []
+        if regions:
+            try:
+                status_bar_update_func("Converting speech regions to FLAC files...")
+                widgets = ["Converting speech regions to FLAC files: ", Percentage(), ' ', Bar(), ' ', ETA()]
+                pbar = ProgressBar(widgets=widgets, maxval=len(regions)).start()
+                extracted_regions = []
+                for i, extracted_region in enumerate(pool.imap(converter, regions)):
+                    extracted_regions.append(extracted_region)
+                    pbar.update(i)
+                pbar.finish()
 
-            status_bar_update_func("Performing speech recognition...")
-            widgets = ["Performing speech recognition: ", Percentage(), ' ', Bar(), ' ', ETA()]
-            pbar = ProgressBar(widgets=widgets, maxval=len(regions)).start()
+                status_bar_update_func("Performing speech recognition...")
+                widgets = ["Performing speech recognition: ", Percentage(), ' ', Bar(), ' ', ETA()]
+                pbar = ProgressBar(widgets=widgets, maxval=len(regions)).start()
 
-            for i, transcript in enumerate(pool.imap(recognizer, extracted_regions)):
-                if transcript:
-                    transcripts.append(transcript)
-                pbar.update(i)
-            pbar.finish()
+                for i, transcript in enumerate(pool.imap(recognizer, extracted_regions)):
+                    if transcript:
+                        transcripts.append(transcript)
+                    pbar.update(i)
+                pbar.finish()
 
-            if not is_same_language(source_lang, dst_lang):
-                if args.api_key:
-                    google_translate_api_key = args.api_key
-                    translator = Translator(dst_lang, google_translate_api_key, dst=dst_lang,
-                                            src=source_lang)
-                    prompt = "Translating from {0} to {1}: ".format(LANGUAGE_CODES[source_lang], LANGUAGE_CODES[dst_lang])
-                    widgets = [prompt, Percentage(), ' ', Bar(), ' ', ETA()]
-                    pbar = ProgressBar(widgets=widgets, maxval=len(regions)).start()
-                    translated_transcripts = []
-                    for i, transcript in enumerate(pool.imap(translator, transcripts)):
-                        translated_transcripts.append(transcript)
-                        pbar.update(i)
-                    pbar.finish()
-                    transcripts = translated_transcripts
-                else:
-                    status_bar_update_func("Google Translate API key is required for translation.")
-                    return 1
+                if not is_same_language(source_lang, dst_lang):
+                    if args.api_key:
+                        google_translate_api_key = args.api_key
+                        translator = Translator(dst_lang, google_translate_api_key, dst=dst_lang,
+                                                src=source_lang)
+                        prompt = "Translating from {0} to {1}: ".format(LANGUAGE_CODES[source_lang], LANGUAGE_CODES[dst_lang])
+                        widgets = [prompt, Percentage(), ' ', Bar(), ' ', ETA()]
+                        pbar = ProgressBar(widgets=widgets, maxval=len(regions)).start()
+                        translated_transcripts = []
+                        for i, transcript in enumerate(pool.imap(translator, transcripts)):
+                            translated_transcripts.append(transcript)
+                            pbar.update(i)
+                        pbar.finish()
+                        transcripts = translated_transcripts
+                    else:
+                        status_bar_update_func("Google Translate API key is required for translation.")
+                        return 1
 
-        except KeyboardInterrupt:
-            pbar.finish()
-            pool.terminate()
-            pool.join()
-            status_bar_update_func("Processing interrupted.")
-            return 1
-        except Exception as e:
-            status_bar_update_func(f"Error: {str(e)}")
-            return 1
-        finally:
-            if os.path.exists(audio_filename):
-                os.remove(audio_filename)
+            except KeyboardInterrupt:
+                pbar.finish()
+                pool.terminate()
+                pool.join()
+                status_bar_update_func("Processing interrupted.")
+                return 1
+            except Exception as e:
+                status_bar_update_func(f"Error: {str(e)}")
+                return 1
+            finally:
+                if os.path.exists(audio_filename):
+                    os.remove(audio_filename)
 
         timed_subtitles = [(r, t) for r, t in zip(regions, transcripts) if t]
         formatter = FORMATTERS.get(args.format)
@@ -357,16 +382,22 @@ def main(source_path, source_lang, dst_lang, status_bar_update_func, completion_
         completion_notification_func()
         return 0
 
-    if __name__ == "__main__":
-        if getattr(sys, 'frozen', False):
-            # Running as a compiled executable
-            os.chdir(os.path.dirname(sys.executable))
-            # Hide the console window
-            ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)
-        else:
-            # Running as a script
-            os.chdir(os.path.dirname(os.path.abspath(__file__)))
+    except Exception as e:
+        status_bar_update_func(f"Error: {str(e)}")
+        return 1
 
-        root = tk.Tk()
-        app = AutoSubGUI(root)
-        root.mainloop()
+if __name__ == "__main__":
+    if getattr(sys, 'frozen', False):
+        # Running as a compiled executable
+        os.chdir(os.path.dirname(sys.executable))
+        # Hide the console window
+        ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)
+    else:
+        # Running as a script
+        os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
+    root = tk.Tk()
+    app = AutoSubGUI(root, status_bar_update_func=lambda msg: root.after(0, lambda: root.status_bar.config(text=msg)))
+    root.status_bar = tk.Label(root, text="", bd=1, relief=tk.SUNKEN, anchor=tk.W)
+    root.status_bar.pack(side=tk.BOTTOM, fill=tk.X)
+    root.mainloop()

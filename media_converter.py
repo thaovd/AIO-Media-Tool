@@ -4,6 +4,7 @@ from tkinter import ttk, StringVar, filedialog, simpledialog, Toplevel, Text, BO
 from tkinter.constants import END
 from get_total_time_video import get_video_duration
 import sys
+import codecs
 
 class MediaConverter:
     def __init__(self, master, app):
@@ -229,15 +230,19 @@ class MediaConverter:
                 total_duration = video_duration.total_seconds()
                 current_duration = 0
                 while True:
-                    output = process.stderr.readline()
+                    try:
+                        output = process.stderr.readline().strip()
+                    except UnicodeDecodeError:
+                        # Handle the UnicodeDecodeError by using a different encoding
+                        output = process.stderr.readline().decode('utf-8', errors='replace').strip()
                     if output == '' and process.poll() is not None:
                         break
                     if output:
                         if output.startswith("frame="):
                             # Extract the current duration from the ffmpeg output
                             current_duration = float(output.split("time=")[1].split(" ")[0].split(":")[0]) * 3600 + \
-                                               float(output.split("time=")[1].split(" ")[0].split(":")[1]) * 60 + \
-                                               float(output.split("time=")[1].split(" ")[0].split(":")[2])
+                                            float(output.split("time=")[1].split(" ")[0].split(":")[1]) * 60 + \
+                                            float(output.split("time=")[1].split(" ")[0].split(":")[2])
                             progress_percentage = (current_duration / total_duration) * 100
                             self.progress_bar.config(value=progress_percentage)
                             self.master.update()
@@ -251,7 +256,6 @@ class MediaConverter:
                 self.app.status_bar.config(text="Lỗi chuyển đổi, vui lòng kiểm tra lại.", style="CustomStatusBar.TLabel")
             finally:
                 self.master.update()
-                self.progress_bar.config(value=0)
 
 
     def get_custom_bitrate(self):
