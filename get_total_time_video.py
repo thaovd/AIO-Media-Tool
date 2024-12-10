@@ -5,8 +5,8 @@ import sys
 
 def get_video_duration(video_file):
     try:
-        script_dir = os.path.dirname(os.path.abspath(__file__))
-        ffmpeg_path = os.path.join(script_dir, "ffprobe.exe")
+        script_dir = "ffprobe.exe"
+        ffmpeg_path = script_dir
         output = subprocess.check_output([ffmpeg_path, '-v', 'error', '-show_entries', 'format=duration', '-of', 'default=noprint_wrappers=1:nokey=1', video_file])
         duration_seconds = float(output.decode().strip())
         return datetime.timedelta(seconds=duration_seconds)

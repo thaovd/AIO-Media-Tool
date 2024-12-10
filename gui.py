@@ -12,6 +12,7 @@ import json
 from tkinter.messagebox import showinfo
 import time
 from autosub import AutoSubGUI
+from shazam import ShazamGUI
 import multiprocessing
 
 class AIOMediaTool:
@@ -28,6 +29,8 @@ class AIOMediaTool:
             self.master.iconbitmap(os.path.join(os.path.dirname(__file__), 'icon.ico'))       
         except:
             print("Không load được icon.")
+
+            
 
         # Tab lựa chọn tính năng
         self.feature_selection_tab = ttk.Notebook(master)
@@ -54,6 +57,12 @@ class AIOMediaTool:
         self.feature_selection_tab.add(self.autosub_tab, text="AutoSub")
         self.autosub = AutoSubGUI(self.autosub_tab, self.update_status_bar)  # Pass the status bar update function
 
+        # Shazam tab
+        self.shazam_tab = ttk.Frame(self.feature_selection_tab)
+        self.feature_selection_tab.add(self.shazam_tab, text="Tìm nhạc (Beta)")
+        self.shazam = ShazamGUI(self.shazam_tab)  # Pass the status bar update function is not required
+
+
         # Settings tab
         self.settings_tab = ttk.Frame(self.feature_selection_tab)
         self.feature_selection_tab.add(self.settings_tab, text="Settings")
@@ -68,7 +77,7 @@ class AIOMediaTool:
         self.status_bar_update_time = time.time()  # Initialize the status bar update time
 
         # Version
-        self.version = "2.4.4"
+        self.version = "2.5.0"
         self.version_label = ttk.Label(master, text=f"Version {self.version} @ vuthao.id.vn", anchor="e", style="VersionLabel.TLabel")
         self.version_label.pack(side="bottom", fill="x", padx=10, pady=0)
         self.version_label.configure(background="#f5f5f5")
@@ -86,7 +95,7 @@ class AIOMediaTool:
         self.startup_tab_label.grid(row=0, column=0, padx=10, pady=10, sticky="w")
 
         self.startup_tab_combobox = ttk.Combobox(self.settings_tab, textvariable=self.startup_tab_var, state="readonly")
-        self.startup_tab_combobox["values"] = ["Cắt Video", "Social DL", "Media Converter", "AutoSub"]
+        self.startup_tab_combobox["values"] = ["Cắt Video", "Social DL", "Media Converter", "AutoSub", "Tìm nhạc (Beta)"]
         self.startup_tab_combobox.grid(row=0, column=1, padx=10, pady=10)
 
         self.save_settings_button = ttk.Button(self.settings_tab, text="Save Settings", command=self.save_settings)

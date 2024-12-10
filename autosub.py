@@ -135,8 +135,11 @@ class FLACConverter(object):
             start = max(0, start - self.include_before)
             end += self.include_after
             temp = tempfile.NamedTemporaryFile(suffix='.flac', delete=False)
-            script_dir = os.path.dirname(os.path.abspath(__file__))
-            ffmpeg_path = os.path.join(script_dir, "ffmpeg.exe")
+            script_dir = "ffmpeg.exe"
+            ffmpeg_path = script_dir
+            #script_dir = os.path.dirname(os.path.abspath(__file__))
+            #ffmpeg_path = os.path.join(script_dir, "ffmpeg.exe")
+
             command = [ffmpeg_path, "-ss", str(start), "-t", str(end - start),
                        "-y", "-i", self.source_path,
                        "-loglevel", "error", "-hide_banner", "-nostats", temp.name]
@@ -217,8 +220,11 @@ def extract_audio(filename, channels=1, rate=16000):
     temp = tempfile.NamedTemporaryFile(suffix='.wav', delete=False)
     if not os.path.isfile(filename):
         raise Exception("Invalid filepath: {0}".format(filename))
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    ffmpeg_path = os.path.join(script_dir, "ffmpeg.exe")
+    script_dir = "ffmpeg.exe"
+    ffmpeg_path = script_dir
+    #script_dir = os.path.dirname(os.path.abspath(__file__))
+    #ffmpeg_path = os.path.join(script_dir, "ffmpeg.exe")
+
     command = [ffmpeg_path, "-y", "-i", filename, "-ac", str(channels), "-ar", str(rate), "-loglevel", "error", "-hide_banner", "-nostats", temp.name]
     subprocess.check_output(command, stdin=open(os.devnull), stderr=subprocess.PIPE, universal_newlines=True, creationflags=subprocess.CREATE_NO_WINDOW | subprocess.DETACHED_PROCESS)
     return temp.name, rate

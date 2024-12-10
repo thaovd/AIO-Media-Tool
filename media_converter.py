@@ -183,8 +183,10 @@ class MediaConverter:
                     return
 
                 # Determine the path to the ffmpeg executable
-                script_dir = os.path.dirname(os.path.abspath(__file__))
-                ffmpeg_path = os.path.join(script_dir, 'ffmpeg.exe')
+                script_dir = "ffmpeg.exe"
+                ffmpeg_path = script_dir
+                #script_dir = os.path.dirname(os.path.abspath(__file__))
+                #ffmpeg_path = os.path.join(script_dir, 'ffmpeg.exe')
 
                 ffmpeg_command = [ffmpeg_path, "-y", "-hwaccel", "cuda", "-i", input_file]
 

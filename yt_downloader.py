@@ -8,8 +8,10 @@ from PIL import Image, ImageTk
 import requests
 import re
 
-script_dir = os.path.dirname(os.path.abspath(__file__))
-ffmpeg_path = os.path.join(script_dir, 'ffmpeg.exe')
+script_dir = "ffmpeg.exe"
+ffmpeg_path = script_dir
+#script_dir = os.path.dirname(os.path.abspath(__file__))
+#ffmpeg_path = os.path.join(script_dir, 'ffmpeg.exe')
 
 class YTDownloader:
     def __init__(self, master, app):
