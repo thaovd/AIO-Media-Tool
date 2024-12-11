@@ -13,6 +13,7 @@ from tkinter.messagebox import showinfo
 import time
 from autosub import AutoSubGUI
 from shazam import ShazamGUI
+from renamer import FileRenamerGUI
 import multiprocessing
 
 class AIOMediaTool:
@@ -30,8 +31,6 @@ class AIOMediaTool:
         except:
             print("Không load được icon.")
 
-            
-
         # Tab lựa chọn tính năng
         self.feature_selection_tab = ttk.Notebook(master)
         self.feature_selection_tab.pack(fill="both", expand=True, padx=20, pady=20)
@@ -43,9 +42,8 @@ class AIOMediaTool:
 
         # YouTube Downloader tab
         self.yt_downloader_tab = ttk.Frame(self.feature_selection_tab)
-        self.feature_selection_tab.add(self.yt_downloader_tab, text="Social DL")
+        self.feature_selection_tab.add(self.yt_downloader_tab, text="Social Media DL")
         self.yt_downloader = YTDownloader(self.yt_downloader_tab, self)
-
 
         # Media Converter tab
         self.media_converter_tab = ttk.Frame(self.feature_selection_tab)
@@ -59,9 +57,13 @@ class AIOMediaTool:
 
         # Shazam tab
         self.shazam_tab = ttk.Frame(self.feature_selection_tab)
-        self.feature_selection_tab.add(self.shazam_tab, text="Tìm nhạc (Beta)")
+        self.feature_selection_tab.add(self.shazam_tab, text="Tìm nhạc (Shazam)")
         self.shazam = ShazamGUI(self.shazam_tab)  # Pass the status bar update function is not required
 
+        # File Renamer tab
+        self.file_renamer_tab = ttk.Frame(self.feature_selection_tab)
+        self.feature_selection_tab.add(self.file_renamer_tab, text="Batch Rename")
+        self.file_renamer = FileRenamerGUI(self.file_renamer_tab, self)
 
         # Settings tab
         self.settings_tab = ttk.Frame(self.feature_selection_tab)
@@ -77,7 +79,7 @@ class AIOMediaTool:
         self.status_bar_update_time = time.time()  # Initialize the status bar update time
 
         # Version
-        self.version = "2.5.0"
+        self.version = "2.6.1"
         self.version_label = ttk.Label(master, text=f"Version {self.version} @ vuthao.id.vn", anchor="e", style="VersionLabel.TLabel")
         self.version_label.pack(side="bottom", fill="x", padx=10, pady=0)
         self.version_label.configure(background="#f5f5f5")
@@ -95,15 +97,19 @@ class AIOMediaTool:
         self.startup_tab_label.grid(row=0, column=0, padx=10, pady=10, sticky="w")
 
         self.startup_tab_combobox = ttk.Combobox(self.settings_tab, textvariable=self.startup_tab_var, state="readonly")
-        self.startup_tab_combobox["values"] = ["Cắt Video", "Social DL", "Media Converter", "AutoSub", "Tìm nhạc (Beta)"]
+        self.startup_tab_combobox["values"] = ["Cắt Video", "Social Media DL", "Media Converter", "AutoSub", "Tìm nhạc (Shazam)", "Batch Rename"]
         self.startup_tab_combobox.grid(row=0, column=1, padx=10, pady=10)
 
-        self.save_settings_button = ttk.Button(self.settings_tab, text="Save Settings", command=self.save_settings)
-        self.save_settings_button.grid(row=1, column=0, columnspan=2, padx=10, pady=10)
+        self.save_settings_button = ttk.Button(self.settings_tab, text="Lưu cài đặt", command=self.save_settings)
+        self.save_settings_button.grid(row=1, column=1, columnspan=2, padx=10, pady=10)
 
         # Add "Check for Update" button
-        self.check_update_button = ttk.Button(self.settings_tab, text="Check for Update", command=self.check_for_update)
-        self.check_update_button.grid(row=2, column=0, columnspan=2, padx=10, pady=10)
+        self.check_update_button = ttk.Button(self.settings_tab, text="Kiểm tra cập nhật", command=self.check_for_update)
+        self.check_update_button.grid(row=2, column=1, columnspan=2, padx=10, pady=10)
+
+        # Add File Renamer tab content
+        self.file_renamer = FileRenamerGUI(self.file_renamer_tab, self)
+        self.file_renamer.pack(fill="both", expand=True, padx=20, pady=20)
 
     def check_for_update(self):
         try:
@@ -121,12 +127,27 @@ class AIOMediaTool:
         try:
             with open("config.json", "r") as f:
                 config = json.load(f)
+                if config["version"] != self.version:
+                    # Update the config.json file with the current version
+                    config["version"] = self.version
+                    with open("config.json", "w") as f:
+                        json.dump(config, f)
+                        self.status_bar.config(text=f"Ứng dụng đã được cập nhật phiên bản {self.version}")
                 self.startup_tab_var.set(config["startup_tab"])
                 self.feature_selection_tab.select(self.get_tab_by_name(config["startup_tab"]))
         except FileNotFoundError:
             # Nếu config.json không có, sử dụng giá trị mặc định
             self.startup_tab_var.set("Cắt Video")
             self.feature_selection_tab.select(self.video_cutter_tab)
+            self.create_config_file()
+
+    def create_config_file(self):
+        config = {
+            "startup_tab": "Cắt Video",
+            "version": self.version
+        }
+        with open("config.json", "w") as f:
+            json.dump(config, f)
 
     def get_tab_by_name(self, tab_name):
         for i in range(self.feature_selection_tab.index("end")):
