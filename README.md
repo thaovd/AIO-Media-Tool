@@ -1,4 +1,15 @@
+AIO TOOL MEDIA
+Phần mềm tổng hợp các công cụ nhanh, tiện lợi dành cho editer, creative
 
+![image](https://github.com/user-attachments/assets/3541393d-b822-4b5e-aade-31c163a851f3)
+
+
+## Cài đặt
+Sử dụng bản cài đặt tại [Releases](https://github.com/thaovd/AIO-Media-Tool/releases/)
+
+
+
+## Dev Install
 
 - ### Yêu cầu
 
