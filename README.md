@@ -1,5 +1,20 @@
-AIO TOOL MEDIA
+### AIO TOOL MEDIA
+
 Phần mềm tổng hợp các công cụ nhanh, tiện lợi dành cho editer, creative
+
+## Tính năng
+* **Cắt Video Nhanh**
+
+* **Download Video từ các nền tảng MXH**
+
+* **Chuyển đổi định dạng media**
+
+* **Tự động tạo subtitle**
+
+* **Tìm kiếm nhạc bằng Shazam**
+
+* **Đổi tên file hàng loạt**
+
 
 ![image](https://github.com/user-attachments/assets/3541393d-b822-4b5e-aade-31c163a851f3)
 
