@@ -15,6 +15,7 @@ Sử dụng bản cài đặt tại [Releases](https://github.com/thaovd/AIO-Med
 
 - Python 3.7 trở lên
 - pip (trình cài đặt gói Python)
+- FFmpeg Bin [FFmpeg](https://github.com/BtbN/FFmpeg-Builds/releases)
 
 - ### Cài đặt từ mã nguồn
 
@@ -35,14 +36,10 @@ Sử dụng bản cài đặt tại [Releases](https://github.com/thaovd/AIO-Med
 
 4. Kích hoạt môi trường ảo:
 
-   - Trên Windows:
      ```
      env\Scripts\activate
      ```
-   - Trên macOS/Linux:
-     ```
-     source env/bin/activate
-     ```
+
 
 5. Cài đặt các phụ thuộc cần thiết:
    ```
