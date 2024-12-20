@@ -7,6 +7,7 @@ from io import BytesIO
 from PIL import Image, ImageTk
 import requests
 import re
+import subprocess
 
 script_dir = "ffmpeg.exe"
 ffmpeg_path = script_dir
@@ -223,7 +224,6 @@ class YTDownloader:
 
         resolutions_text = f"Độ phân giải: {video_info['resolutions']}"
         self.resolutions_label.configure(text=resolutions_text, wraplength=350)
-
         self.length_label.configure(text=f"Thời lượng: {video_info['length']}")
 
     def show_user_guide(self):
@@ -282,7 +282,6 @@ class YTDownloader:
         else:
             self.app.status_bar.config(text="Vui lòng chọn Folder lưu trước khi tải xuống.", style="CustomStatusBar.TLabel")
             self.master.update()
-
 
     def download_audio_and_video(self):
         if self.save_location_var.get():
@@ -500,36 +499,97 @@ class YTDownloader:
             if 'drive.google.com' in video_url:
                 self.app.status_bar.config(text="Đây là URL Google Drive. Vui lòng sử dụng tính năng 'Lựa chọn chất lượng khác' để tải xuống.", style="CustomStatusBar.TLabel")
                 self.master.update()
+                self.custom_download_button.config(state='normal')
+                self.audio_only_button.config(state='disabled')
+                self.video_only_button.config(state='disabled')
+                self.audio_video_button.config(state='disabled')
+                self.tiktok_button.config(state='disabled')
+                self.m3u8_button.config(state='disabled')
+                self.playlist_download_button.config(state='disabled')
                 return
 
             # Get video information
             ydl_opts = {}
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 info = ydl.extract_info(video_url, download=False)
-                title = info.get('title', 'Unknown')
+                title = info.get('title', 'Unknown') 
+                vcodec = info.get('vcodec', 'none')
 
             # Sanitize the title to remove special characters
             sanitized_title = self.sanitize_filename(title)
-            output_file = f"{save_location}/{sanitized_title}.%(id)s.%(ext)s"
+            output_file = os.path.join(save_location, f"{sanitized_title}.mp4")
+            print(f"{output_file}")
+            # Check if the video codec is different from avc1
+            if vcodec != 'avc1.42001E':
+                response = messagebox.askyesnocancel("Xác nhận Download", f"Video này là Codec {vcodec} không phù hợp với Adobe Premiere Pro. Bạn có muốn chuyển đổi sang h264 không?")
+                if response is None:
+                    return
+                elif response:
+                    self.app.status_bar.config(text="Đang tải xuống...", style="CustomStatusBar.TLabel")
+                    self.master.update()
 
-            self.app.status_bar.config(text="Đang tải xuống...", style="CustomStatusBar.TLabel")
-            self.master.update()
+                    try:
+                        ydl_opts = {
+                            'outtmpl': output_file,
+                            'format': format if format else 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
+                            'quiet': True,
+                            'no_warnings': True,
+                            'ignoreerrors': True,
+                            'progress_hooks': [self.show_progress],
+                            'ffmpeg_location': ffmpeg_path,
+                        }
+                        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                            ydl.download([video_url])
 
-            try:
-                ydl_opts = {
-                    'outtmpl': output_file,
-                    'format': format if format else 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
-                    'quiet': True,
-                    'no_warnings': True,
-                    'ignoreerrors': True,
-                    'progress_hooks': [self.show_progress],
-                    'ffmpeg_location': ffmpeg_path,
-                }
-                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                    ydl.download([video_url])
-                self.app.status_bar.config(text="Đã tải xuống.", style="CustomStatusBar.TLabel")
-            except Exception as e:
-                self.app.status_bar.config(text="Lỗi không xác định, vui lòng thử lại sau.", style="CustomStatusBar.TLabel")
+                        # Convert the video to h264 format using ffmpeg
+                        self.app.status_bar.config(text="Đang chuyển đổi định dạng codec video...", style="CustomStatusBar.TLabel")
+                        self.master.update()
+                        converted_file = os.path.splitext(output_file)[0] + "_convert.mp4"
+                        subprocess.run([ffmpeg_path, "-y", "-hwaccel", "cuda", "-i", output_file, "-c:v", "libx264", "-crf", "23", converted_file], check=True)
+                        os.remove(output_file)
+                        self.app.status_bar.config(text="Hoàn thành.", style="CustomStatusBar.TLabel")
+                        messagebox.showinfo("Hoàn thành", "Đã tải xuống và chuyển đổi codec của video thành avc1.h264.")
+
+                    except Exception as e:
+                        self.app.status_bar.config(text="Lỗi không xác định, vui lòng thử lại sau.", style="CustomStatusBar.TLabel")
+                elif response == False:
+                    self.app.status_bar.config(text="Đang tải xuống...", style="CustomStatusBar.TLabel")
+                    self.master.update()
+
+                    try:
+                        ydl_opts = {
+                            'outtmpl': output_file,
+                            'format': format if format else 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
+                            'quiet': True,
+                            'no_warnings': True,
+                            'ignoreerrors': True,
+                            'progress_hooks': [self.show_progress],
+                            'ffmpeg_location': ffmpeg_path,
+                        }
+                        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                            ydl.download([video_url])
+                        self.app.status_bar.config(text="Đã tải xuống.", style="CustomStatusBar.TLabel")
+                    except Exception as e:
+                        self.app.status_bar.config(text="Lỗi không xác định, vui lòng thử lại sau.", style="CustomStatusBar.TLabel")
+            else:
+                self.app.status_bar.config(text="Đang tải xuống...", style="CustomStatusBar.TLabel")
+                self.master.update()
+
+                try:
+                    ydl_opts = {
+                        'outtmpl': output_file,
+                        'format': format if format else 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
+                        'quiet': True,
+                        'no_warnings': True,
+                        'ignoreerrors': True,
+                        'progress_hooks': [self.show_progress],
+                        'ffmpeg_location': ffmpeg_path,
+                    }
+                    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                        ydl.download([video_url])
+                    self.app.status_bar.config(text="Đã tải xuống.", style="CustomStatusBar.TLabel")
+                except Exception as e:
+                    self.app.status_bar.config(text="Lỗi không xác định, vui lòng thử lại sau.", style="CustomStatusBar.TLabel")
         else:
             self.app.status_bar.config(text="Vui lòng chọn Folder lưu trước khi tải xuống.", style="CustomStatusBar.TLabel")
             self.master.update()
@@ -539,6 +599,7 @@ class YTDownloader:
         Sanitize the filename by removing special characters that may cause issues when saving the file.
         """
         return re.sub(r'[^\w\-_\. ]', '_', filename)
+
 
     def open_folder(self):
         save_location = self.save_location_var.get()

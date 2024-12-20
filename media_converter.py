@@ -84,7 +84,6 @@ class MediaConverter:
 
         self.progress_bar = ttk.Progressbar(self.media_conversion_frame, mode='determinate', length=530)
         self.progress_bar.grid(row=8, column=0, columnspan=3, padx=10, pady=10, sticky="we")
-        
 
         # User Guide Button
         self.user_guide_button = ttk.Button(self.media_conversion_frame, text="Hướng Dẫn Sử Dụng", command=self.show_user_guide, style="CustomButton.TButton")
@@ -148,6 +147,16 @@ class MediaConverter:
         if file_path:
             self.input_file_entry.delete(0, END)
             self.input_file_entry.insert(0, file_path)
+            # Set the default output folder to the directory of the input file
+            self.set_default_output_folder(file_path)
+
+    def set_default_output_folder(self, file_path):
+        """
+        Set the default output folder to the directory of the input file.
+        """
+        output_folder = os.path.dirname(file_path)
+        self.output_folder_entry.delete(0, END)
+        self.output_folder_entry.insert(0, output_folder)
 
     def select_output_folder(self):
         folder_path = filedialog.askdirectory()
@@ -167,7 +176,7 @@ class MediaConverter:
         if input_file and output_folder and output_format:
             file_info = os.path.splitext(os.path.basename(input_file))
             filename_without_ext = file_info[0]
-            output_file = os.path.join(output_folder, f"{filename_without_ext}.{output_format}")
+            output_file = os.path.join(output_folder, f"{filename_without_ext}_convert.{output_format}")
 
             if not os.path.exists(output_folder):
                 os.makedirs(output_folder)
