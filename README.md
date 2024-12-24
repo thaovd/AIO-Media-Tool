@@ -11,6 +11,8 @@ Phần mềm tổng hợp các công cụ nhanh, tiện lợi dành cho editer, 
 
 * **Tự động tạo subtitle**
 
+* * **Tự động tạo subtitle nâng cao sử dụng Google Gemini **
+
 * **Tìm kiếm nhạc bằng Shazam**
 
 * **Đổi tên file hàng loạt**
