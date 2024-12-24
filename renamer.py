@@ -1,78 +1,109 @@
+import tkinter as tk
+from tkinter import filedialog, ttk
 import os
-from tkinter import Tk, Frame, Label, Entry, Button, ttk, StringVar, filedialog, messagebox
+import os.path
 
-class FileRenamerGUI(Frame):
-    def __init__(self, master, parent):
-        super().__init__(master)
-        self.parent = parent
-        self.create_widgets()
+class BatchFileRenamer:
+    def __init__(self, master):
+        self.master = master
 
-    def create_widgets(self):
-        # Directory selection
-        directory_label = Label(self, text="Chọn thư mục cần đổi tên file:")
-        directory_label.pack(pady=10)
+        # Create the main frame
+        self.main_frame = tk.Frame(master)
+        self.main_frame.pack(padx=20, pady=20)
 
-        directory_button = Button(self, text="Tìm thư mục", command=self.select_directory)
-        directory_button.pack(pady=5)
+        # Create the input frame
+        self.input_frame = tk.Frame(self.main_frame)
+        self.input_frame.pack(pady=10)
 
-        self.directory_entry = Entry(self, width=40, state="readonly")
-        self.directory_entry.pack(pady=5)
+        # Create the input label and entry
+        self.input_label = tk.Label(self.input_frame, text="Chọn thư mục:")
+        self.input_label.pack(side=tk.LEFT)
+        self.input_entry = tk.Entry(self.input_frame, width=40)
+        self.input_entry.pack(side=tk.LEFT)
+        self.input_button = tk.Button(self.input_frame, text="Tìm", command=self.select_directory)
+        self.input_button.pack(side=tk.LEFT, padx=10)
 
-        # Character modification
-        character_label = Label(self, text="Nhập ký tự cần sửa đổi:")
-        character_label.pack(pady=10)
+        # Create the operation frame
+        self.operation_frame = tk.Frame(self.main_frame)
+        self.operation_frame.pack(pady=10)
 
-        self.character_entry = Entry(self)
-        self.character_entry.pack(pady=5)
+        # Create the mode selection label and combobox
+        self.mode_label = tk.Label(self.operation_frame, text="Chế độ:")
+        self.mode_label.pack(side=tk.LEFT)
+        self.mode_combobox = ttk.Combobox(self.operation_frame, width=25, state="readonly")
+        self.mode_combobox["values"] = ("Xoá ký tự trong tên", "Thêm vào đầu tên", "Thêm vào cuối tên")
+        self.mode_combobox.current(0)
+        self.mode_combobox.pack(side=tk.LEFT, padx=10)
 
-        # Modify mode selection
-        modify_mode_label = Label(self, text="Lựa chọn chế độ sửa đổi:")
-        modify_mode_label.pack(pady=10)
+        # Create the character entry label and entry
+        self.char_label = tk.Label(self.operation_frame, text="Ký tự yêu cầu:")
+        self.char_label.pack(side=tk.LEFT)
+        self.char_entry = tk.Entry(self.operation_frame, width=20)
+        self.char_entry.pack(side=tk.LEFT, padx=10)
+        self.char_entry.bind("<KeyRelease>", self.update_preview)  # Bind the KeyRelease event to the update_preview method
 
-        self.modify_mode = StringVar(value="Thêm vào đầu tên file")
-        self.modify_mode_dropdown = ttk.Combobox(self, textvariable=self.modify_mode, values=["Thêm vào đầu tên file", "Thêm vào cuối tên file", "Xoá ký tự trong tên file"], state="readonly")
-        self.modify_mode_dropdown.pack(pady=10)
-        self.modify_mode_dropdown.current(0)
+        # Create the rename button
+        self.rename_button = tk.Button(self.main_frame, text="Chạy", command=self.rename_files)
+        self.rename_button.pack(pady=10)
 
-        # Process button
-        process_button = Button(self, text="Chạy", command=self.process_files)
-        process_button.pack(pady=10)
+        # Create the preview frame
+        self.preview_frame = tk.Frame(self.main_frame)
+        self.preview_frame.pack(pady=10)
+
+        # Create the preview label and listbox
+        self.preview_label = tk.Label(self.preview_frame, text="Xem trước:")
+        self.preview_label.pack(side=tk.LEFT)
+        self.preview_listbox = tk.Listbox(self.preview_frame, width=50, height=20)
+        self.preview_listbox.pack(side=tk.LEFT, padx=10)
+
+        # Create the preview scrollbar
+        self.preview_scrollbar = tk.Scrollbar(self.preview_frame, command=self.preview_listbox.yview)
+        self.preview_scrollbar.pack(side=tk.LEFT, fill=tk.BOTH)
+        self.preview_listbox.config(yscrollcommand=self.preview_scrollbar.set)
 
     def select_directory(self):
-        self.directory_path = filedialog.askdirectory()
-        self.directory_entry.config(state="normal")
-        self.directory_entry.delete(0, "end")
-        self.directory_entry.insert(0, self.directory_path)
-        self.directory_entry.config(state="readonly")
+        directory = filedialog.askdirectory()
+        self.input_entry.delete(0, tk.END)
+        self.input_entry.insert(0, directory)
+        self.update_preview()
 
-    def process_files(self):
-        self.character_to_modify = self.character_entry.get()
-        modify_mode = self.modify_mode.get()
-        if modify_mode == "Thêm vào đầu tên file":
-            add_character_to_beginning(self.directory_path, self.character_to_modify)
-        elif modify_mode == "Thêm vào cuối tên file":
-            add_character_to_end(self.directory_path, self.character_to_modify)
-        elif modify_mode == "Xoá ký tự trong tên file":
-            delete_character_from_filename(self.directory_path, self.character_to_modify)
-        else:
-            print(f"Chưa chọn chế độ chỉnh sửa: {modify_mode}")
-        messagebox.showinfo("Tệp đã được đổi tên", "Hoàn thành quá trình đổi tên tệp.")
-        self.parent.update_status_bar("Hoàn thành quá trình đổi tên tệp.")
+    def update_preview(self, event=None):
+        directory = self.input_entry.get()
+        mode = self.mode_combobox.get()
+        char = self.char_entry.get()
 
-def add_character_to_beginning(directory, character_to_add):
-    for filename in os.listdir(directory):
-        base, ext = os.path.splitext(filename)
-        new_filename = character_to_add + base + ext
-        os.rename(os.path.join(directory, filename), os.path.join(directory, new_filename))
+        self.preview_listbox.delete(0, tk.END)
+        if os.path.isdir(directory):
+            for filename in os.listdir(directory):
+                if mode == "Xoá ký tự trong tên":
+                    new_filename = filename.replace(char, "")
+                elif mode == "Thêm vào đầu tên":
+                    new_filename = char + filename
+                else:  # "Thêm vào cuối tên"
+                    base, ext = os.path.splitext(filename)
+                    new_filename = base + char + ext
+                self.preview_listbox.insert(tk.END, new_filename)
 
-def add_character_to_end(directory, character_to_add):
-    for filename in os.listdir(directory):
-        base, ext = os.path.splitext(filename)
-        new_filename = base + character_to_add + ext
-        os.rename(os.path.join(directory, filename), os.path.join(directory, new_filename))
+    def rename_files(self):
+        directory = self.input_entry.get()
+        mode = self.mode_combobox.get()
+        char = self.char_entry.get()
 
-def delete_character_from_filename(directory, character_to_delete):
-    for filename in os.listdir(directory):
-        base, ext = os.path.splitext(filename)
-        new_filename = base.replace(character_to_delete, "") + ext
-        os.rename(os.path.join(directory, filename), os.path.join(directory, new_filename))
+        if not os.path.isdir(directory):
+            tk.messagebox.showerror("Lỗi", "Vui lòng chọn folder cần đổi tên.")
+            return
+
+        for filename in os.listdir(directory):
+            old_path = os.path.join(directory, filename)
+            if mode == "Xoá ký tự trong tên":
+                new_filename = filename.replace(char, "")
+            elif mode == "Thêm vào đầu tên":
+                new_filename = char + filename
+            else:  # "Thêm vào cuối tên"
+                base, ext = os.path.splitext(filename)
+                new_filename = base + char + ext
+            new_path = os.path.join(directory, new_filename)
+            os.rename(old_path, new_path)
+
+        self.update_preview()
+        tk.messagebox.showinfo("Hoàn thành", "Tên file đã được đổi tên.")
