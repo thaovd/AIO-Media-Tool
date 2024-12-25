@@ -512,13 +512,15 @@ class YTDownloader:
             ydl_opts = {}
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 info = ydl.extract_info(video_url, download=False)
-                title = info.get('title', 'Unknown') 
+                title = info.get('title', 'Unknown')
                 vcodec = info.get('vcodec', 'none')
+                ext = info.get('ext', 'mp4')
 
             # Sanitize the title to remove special characters
             sanitized_title = self.sanitize_filename(title)
-            output_file = os.path.join(save_location, f"{sanitized_title}.mp4")
+            output_file = os.path.join(save_location, f"{sanitized_title}.{ext}")
             print(f"{output_file}")
+
             # Check if the video codec is different from avc1
             if vcodec != 'avc1.42001E':
                 response = messagebox.askyesnocancel("Xác nhận Download", f"Video này là Codec {vcodec} không phù hợp với Adobe Premiere Pro. Bạn có muốn chuyển đổi sang h264 không?")
