@@ -43,39 +43,39 @@ class YTDownloader:
         self.save_location_entry = ttk.Entry(self.yt_downloader_frame, textvariable=self.save_location_var, style="CustomEntry.TEntry")
         self.save_location_entry.grid(row=1, column=1, padx=10, pady=20, sticky="we")
 
-        self.save_location_button = ttk.Button(self.yt_downloader_frame, text="Chọn Folder", command=self.choose_save_location, style="CustomButton.TButton")
+        self.save_location_button = ttk.Button(self.yt_downloader_frame, text="👆 Chọn Folder", command=self.choose_save_location, style="CustomButton.TButton")
         self.save_location_button.grid(row=1, column=2, padx=10, pady=5, sticky="w")
 
-        self.audio_only_button = ttk.Button(self.yt_downloader_frame, text="Audio only", command=lambda: self.download_audio_only(), style="CustomButton.TButton")
+        self.audio_only_button = ttk.Button(self.yt_downloader_frame, text="♫ Audio only", command=lambda: self.download_audio_only(), style="CustomButton.TButton")
         self.audio_only_button.grid(row=2, column=0, padx=10, pady=5, sticky="w")
 
-        self.video_only_button = ttk.Button(self.yt_downloader_frame, text="Video only (Max)", command=lambda: self.download_video_only(), style="CustomButton.TButton")
+        self.video_only_button = ttk.Button(self.yt_downloader_frame, text="▶ Video only (Max)", command=lambda: self.download_video_only(), style="CustomButton.TButton")
         self.video_only_button.grid(row=2, column=1, padx=10, pady=5, sticky="w")
 
-        self.audio_video_button = ttk.Button(self.yt_downloader_frame, text="A+V (Max)", command=lambda: self.download_audio_and_video(), style="CustomButton.TButton")
+        self.audio_video_button = ttk.Button(self.yt_downloader_frame, text="🎬 A+V (Max)", command=lambda: self.download_audio_and_video(), style="CustomButton.TButton")
         self.audio_video_button.grid(row=2, column=2, padx=10, pady=5, sticky="w")
 
-        self.tiktok_button = ttk.Button(self.yt_downloader_frame, text="A+V Tiktok (Max)", command=lambda: self.download_tiktok(), style="CustomButton.TButton")
+        self.tiktok_button = ttk.Button(self.yt_downloader_frame, text="🎶 A+V Tiktok (Max)", command=lambda: self.download_tiktok(), style="CustomButton.TButton")
         self.tiktok_button.grid(row=3, column=0, padx=10, pady=5, sticky="w")
 
-        self.custom_download_button = ttk.Button(self.yt_downloader_frame, text="Lựa chọn chất lượng khác", command=self.show_custom_download_popup, style="CustomButton.TButton")
+        self.custom_download_button = ttk.Button(self.yt_downloader_frame, text="☰ Lựa chọn chất lượng khác", command=self.show_custom_download_popup, style="CustomButton.TButton")
         self.custom_download_button.grid(row=3, column=1, padx=10, pady=5, sticky="w")
 
         self.m3u8_button = ttk.Button(self.yt_downloader_frame, text="Download m3u8 Video", command=lambda: self.download_m3u8(), style="CustomButton.TButton")
         self.m3u8_button.grid(row=3, column=2, padx=10, pady=5, sticky="w")
 
         # Playlist download button
-        self.playlist_download_button = ttk.Button(self.yt_downloader_frame, text="Download Playlist", command=self.download_playlist, style="CustomButton.TButton")
+        self.playlist_download_button = ttk.Button(self.yt_downloader_frame, text="📼 Download Playlist", command=self.download_playlist, style="CustomButton.TButton")
         self.playlist_download_button.grid(row=4, column=0, padx=10, pady=5, sticky="w")
 
-        self.open_yt_folder_button = ttk.Button(self.yt_downloader_frame, text="Mở thư mục Download", command=self.open_folder, style="CustomButton.TButton")
+        self.open_yt_folder_button = ttk.Button(self.yt_downloader_frame, text="📁 Mở thư mục Download", command=self.open_folder, style="CustomButton.TButton")
         self.open_yt_folder_button.grid(row=4, column=1, columnspan=2, padx=10, pady=5, sticky="w")
 
         self.progress_bar = ttk.Progressbar(self.yt_downloader_frame, mode='determinate', length=540)  # Increased progress bar length to 500 pixels
         self.progress_bar.grid(row=5, column=0, columnspan=3, padx=10, pady=10)
 
         # Guide Button
-        self.user_guide_button = ttk.Button(self.yt_downloader_frame, text="Hướng Dẫn Sử Dụng", command=self.show_user_guide, style="CustomButton.TButton")
+        self.user_guide_button = ttk.Button(self.yt_downloader_frame, text="📜 Hướng Dẫn Sử Dụng", command=self.show_user_guide, style="CustomButton.TButton")
         self.user_guide_button.grid(row=4, column=2, padx=10, pady=5, sticky="w" )
 
         # Video information

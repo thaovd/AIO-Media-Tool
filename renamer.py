@@ -20,7 +20,7 @@ class BatchFileRenamer:
         self.input_label.pack(side=tk.LEFT)
         self.input_entry = tk.Entry(self.input_frame, width=40)
         self.input_entry.pack(side=tk.LEFT)
-        self.input_button = tk.Button(self.input_frame, text="Tìm", command=self.select_directory)
+        self.input_button = tk.Button(self.input_frame, text="🔎 Tìm", command=self.select_directory)
         self.input_button.pack(side=tk.LEFT, padx=10)
 
         # Create the operation frame
@@ -43,7 +43,7 @@ class BatchFileRenamer:
         self.char_entry.bind("<KeyRelease>", self.update_preview)  # Bind the KeyRelease event to the update_preview method
 
         # Create the rename button
-        self.rename_button = tk.Button(self.main_frame, text="Chạy", command=self.rename_files)
+        self.rename_button = tk.Button(self.main_frame, text="🚀 Chạy", command=self.rename_files)
         self.rename_button.pack(pady=10)
 
         # Create the preview frame

@@ -93,10 +93,10 @@ class VideoCutter:
         self.end_timeline = ttk.Scale(self.timeline_frame, from_=0, to=100, orient="horizontal", command=self.update_end_time)
         self.end_timeline.pack(side="left", fill="x", expand=True)
 
-        self.cut_button = ttk.Button(self.video_cutting_frame, text="Chạy", command=self.cut_video, style="CustomButton.TButton")
+        self.cut_button = ttk.Button(self.video_cutting_frame, text="🚀 Chạy", command=self.cut_video, style="CustomButton.TButton")
         self.cut_button.grid(row=7, column=0, padx=10, pady=5)
 
-        self.open_folder_button = ttk.Button(self.video_cutting_frame, text="Mở thư mục xuất", command=self.open_output_folder, style="CustomButton.TButton")
+        self.open_folder_button = ttk.Button(self.video_cutting_frame, text="📁 Mở thư mục xuất", command=self.open_output_folder, style="CustomButton.TButton")
         self.open_folder_button.grid(row=7, column=1, padx=10, pady=5)
 
         # Progress Bar
@@ -178,11 +178,12 @@ class VideoCutter:
             self.start_timeline.config(to=100)
             self.end_timeline.config(to=100)
 
+
     # Khối xử lý update time gửi lên ô start time
     def update_start_time(self, value):
         start_time = int(float(value))
         self.start_time.set(f"{start_time//3600:02d}:{(start_time//60)%60:02d}:{start_time%60:02d}")
-    # tương tự với end time
+
     def update_end_time(self, value):
         end_time = int(float(value))
         self.end_time.set(f"{end_time//3600:02d}:{(end_time//60)%60:02d}:{end_time%60:02d}")
@@ -191,10 +192,10 @@ class VideoCutter:
     def cut_video(self):
         file_paths = self.file_entry.get().split(";")
         save_location = self.save_entry.get()
-        start_time = self.start_time.get()
-        end_time = self.end_time.get()
+        start_time_str = self.start_time.get()
+        end_time_str = self.end_time.get()
 
-        if file_paths and save_location and start_time and end_time:
+        if file_paths and save_location and start_time_str and end_time_str:
             for file_path in file_paths:
                 file_info = os.path.splitext(os.path.basename(file_path))
                 filename_without_ext = file_info[0]
@@ -216,17 +217,19 @@ class VideoCutter:
                     ffmpeg_path = script_dir
                     if platform.system() == 'Windows':
 
-                    # Ẩn ffmpeg console
+                        # Ẩn ffmpeg console
                         if sys.platform.startswith('win'):
                             startupinfo = subprocess.STARTUPINFO()
                             startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-                            process = subprocess.Popen([ffmpeg_path, "-ss", start_time, "-to", end_time, "-y", "-i", file_path, "-acodec", "copy", "-vcodec", "copy", "-async", "1", output_file], startupinfo=startupinfo, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, errors='replace')
+                            process = subprocess.Popen([ffmpeg_path, "-ss", start_time_str, "-to", end_time_str, "-y", "-i", file_path, "-acodec", "copy", "-vcodec", "copy", "-async", "1", output_file], startupinfo=startupinfo, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, errors='replace')
                         else:
-                            process = subprocess.Popen([ffmpeg_path, "-ss", start_time, "-to", end_time, "-y", "-i", file_path, "-acodec", "copy", "-vcodec", "copy", "-async", "1", output_file], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, errors='replace')
-                        
-                    
+                            process = subprocess.Popen([ffmpeg_path, "-ss", start_time_str, "-to", end_time_str, "-y", "-i", file_path, "-acodec", "copy", "-vcodec", "copy", "-async", "1", output_file], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, errors='replace')
+
                     # Theo dõi và cập nhật progress bar
-                    current_duration = 0
+                    start_time = self.convert_time_to_seconds(start_time_str)
+                    end_time = self.convert_time_to_seconds(end_time_str)
+                    self.total_duration = end_time - start_time
+                    current_duration = start_time
                     while True:
                         try:
                             output = process.stderr.readline()
@@ -241,7 +244,7 @@ class VideoCutter:
                                 current_duration = float(output.split("time=")[1].split(" ")[0].split(":")[0]) * 3600 + \
                                                    float(output.split("time=")[1].split(" ")[0].split(":")[1]) * 60 + \
                                                    float(output.split("time=")[1].split(" ")[0].split(":")[2])
-                                progress_percentage = (current_duration / self.total_duration.total_seconds()) * 100
+                                progress_percentage = (current_duration / self.total_duration) * 100
                                 self.progress_bar.config(value=progress_percentage)
                                 self.app.status_bar.config(text=f"Đang cắt Video... {progress_percentage:.2f}%", style="CustomStatusBar.TLabel")
                                 self.master.update()
@@ -259,6 +262,10 @@ class VideoCutter:
                 finally:
                     self.master.update()
                     self.progress_bar.config(value=0)
+
+    def convert_time_to_seconds(self, time_str):
+        hours, minutes, seconds = map(int, time_str.split(":"))
+        return hours * 3600 + minutes * 60 + seconds
 
     #Xử lý hiển thị time chờ bằng giờ phút giây tuỳ trường hợp
     def increment_time(self, time_type, time_part):

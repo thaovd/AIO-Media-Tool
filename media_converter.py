@@ -76,17 +76,17 @@ class MediaConverter:
         self.codec_dropdown = ttk.Combobox(self.media_conversion_frame, textvariable=self.codec_var, values=["libx264", "libx265", "libvpx-vp9"], state="readonly", style="CustomCombobox.TCombobox")
         self.codec_dropdown.grid(row=6, column=1, padx=10, pady=5, sticky="we")
 
-        self.convert_button = ttk.Button(self.media_conversion_frame, text="Chuyển Đổi", command=self.convert_media, style="CustomButton.TButton")
+        self.convert_button = ttk.Button(self.media_conversion_frame, text="🚀 Chuyển Đổi", command=self.convert_media, style="CustomButton.TButton")
         self.convert_button.grid(row=7, column=0, padx=10, pady=5)
 
-        self.open_output_folder_button = ttk.Button(self.media_conversion_frame, text="Mở thư mục xuất", command=self.open_output_folder, style="CustomButton.TButton")
+        self.open_output_folder_button = ttk.Button(self.media_conversion_frame, text="📁 Mở thư mục xuất", command=self.open_output_folder, style="CustomButton.TButton")
         self.open_output_folder_button.grid(row=7, column=1, padx=10, pady=5)
 
         self.progress_bar = ttk.Progressbar(self.media_conversion_frame, mode='determinate', length=530)
         self.progress_bar.grid(row=8, column=0, columnspan=3, padx=10, pady=10, sticky="we")
 
         # User Guide Button
-        self.user_guide_button = ttk.Button(self.media_conversion_frame, text="Hướng Dẫn Sử Dụng", command=self.show_user_guide, style="CustomButton.TButton")
+        self.user_guide_button = ttk.Button(self.media_conversion_frame, text="📜 Hướng Dẫn Sử Dụng", command=self.show_user_guide, style="CustomButton.TButton")
         self.user_guide_button.grid(row=7, column=2, padx=10, pady=5)
 
     def show_user_guide(self):
