@@ -17,6 +17,7 @@ from genmini_sub import AutoSubApp
 from renamer import BatchFileRenamer  # Import the BatchFileRenamer class
 import multiprocessing
 import google.generativeai as genai
+import webbrowser
 
 class AIOMediaTool(tk.Tk):
     def __init__(self):
@@ -39,42 +40,42 @@ class AIOMediaTool(tk.Tk):
 
         # Video Cutter tab
         self.video_cutter_tab = ttk.Frame(self.feature_selection_tab)
-        self.feature_selection_tab.add(self.video_cutter_tab, text="Cắt Video")
+        self.feature_selection_tab.add(self.video_cutter_tab, text="✂ Cắt Video")
         self.video_cutter = VideoCutter(self.video_cutter_tab, self)
 
         # YouTube Downloader tab
         self.yt_downloader_tab = ttk.Frame(self.feature_selection_tab)
-        self.feature_selection_tab.add(self.yt_downloader_tab, text="Social DL")
+        self.feature_selection_tab.add(self.yt_downloader_tab, text="⬇ Social DL")
         self.yt_downloader = YTDownloader(self.yt_downloader_tab, self)
 
         # Media Converter tab
         self.media_converter_tab = ttk.Frame(self.feature_selection_tab)
-        self.feature_selection_tab.add(self.media_converter_tab, text="Converter")
+        self.feature_selection_tab.add(self.media_converter_tab, text="⇄ Converter")
         self.media_converter = MediaConverter(self.media_converter_tab, self)
 
         # AutoSub tab
         self.autosub_tab = ttk.Frame(self.feature_selection_tab)
-        self.feature_selection_tab.add(self.autosub_tab, text="AutoSub")
+        self.feature_selection_tab.add(self.autosub_tab, text="💬 AutoSub")
         self.autosub = AutoSubGUI(self.autosub_tab, self.update_status_bar)
 
         # Genmini Sub tab
         self.genmini_sub_tab = ttk.Frame(self.feature_selection_tab)
-        self.feature_selection_tab.add(self.genmini_sub_tab, text="Genmini Sub")
+        self.feature_selection_tab.add(self.genmini_sub_tab, text="✨Genmini Sub")
         self.genmini_sub = AutoSubApp(self.genmini_sub_tab, self)  # Pass the AIOMediaTool instance to AutoSubApp
 
         # Shazam tab
         self.shazam_tab = ttk.Frame(self.feature_selection_tab)
-        self.feature_selection_tab.add(self.shazam_tab, text="Tìm nhạc")
+        self.feature_selection_tab.add(self.shazam_tab, text="🔍 Tìm nhạc")
         self.shazam = ShazamGUI(self.shazam_tab)
 
         # Renamer tab
         self.renamer_tab = ttk.Frame(self.feature_selection_tab)
-        self.feature_selection_tab.add(self.renamer_tab, text="Renamer")
+        self.feature_selection_tab.add(self.renamer_tab, text="✎ Renamer")
         self.renamer = BatchFileRenamer(self.renamer_tab)
 
         # Settings tab
         self.settings_tab = ttk.Frame(self.feature_selection_tab)
-        self.feature_selection_tab.add(self.settings_tab, text="Settings")
+        self.feature_selection_tab.add(self.settings_tab, text="⚙️ Settings")
         self.create_settings_tab()
 
         # Status Bar
@@ -86,7 +87,7 @@ class AIOMediaTool(tk.Tk):
         self.status_bar_update_time = time.time()
 
         # Version
-        self.version = "2.7.0"
+        self.version = "2.7.3"
         self.version_label = ttk.Label(self, text=f"Version {self.version} @ vuthao.id.vn", anchor="e", style="VersionLabel.TLabel")
         self.version_label.pack(side="bottom", fill="x", padx=10, pady=0)
         self.version_label.configure(background="#f5f5f5")
@@ -104,7 +105,7 @@ class AIOMediaTool(tk.Tk):
         self.startup_tab_label.grid(row=0, column=0, padx=10, pady=10, sticky="w")
 
         self.startup_tab_combobox = ttk.Combobox(self.settings_tab, textvariable=self.startup_tab_var, state="readonly")
-        self.startup_tab_combobox["values"] = ["Cắt Video", "Social DL", "Converter", "AutoSub", "Genmini Sub", "Tìm nhạc", "Renamer"]
+        self.startup_tab_combobox["values"] = ["✂ Cắt Video", "⬇ Social DL", "⇄ Converter", "💬 AutoSub", "✨Genmini Sub", "🔍 Tìm nhạc", "✎ Renamer"]
         self.startup_tab_combobox.grid(row=0, column=1, padx=10, pady=10)
 
         # Add Gemini API Key setting
@@ -115,14 +116,19 @@ class AIOMediaTool(tk.Tk):
         self.gemini_api_key_entry.grid(row=1, column=1, padx=10, pady=10)
         self.gemini_api_key_entry.insert(0, self.get_gemini_api_key())
 
-        # Combine the "Save Settings" and "Save Gemini API Key" buttons into one
-        self.save_settings_button = ttk.Button(self.settings_tab, text="Lưu cài đặt", command=self.save_all_settings)
-        self.save_settings_button.grid(row=2, column=1, columnspan=2, padx=10, pady=10)
 
-        # Add "Check for Update" button
-        self.check_update_button = ttk.Button(self.settings_tab, text="Kiểm tra cập nhật", command=self.check_for_update)
-        self.check_update_button.grid(row=3, column=1, columnspan=2, padx=10, pady=10)
 
+        # Arrange the buttons in a horizontal row
+        self.save_settings_button = ttk.Button(self.settings_tab, text="💾 Lưu cài đặt", command=self.save_all_settings)
+        self.check_update_button = ttk.Button(self.settings_tab, text="⟳ Kiểm tra cập nhật", command=self.check_for_update)
+        self.donate_button = ttk.Button(self.settings_tab, text="☕ Buy Me a Coffee", command=self.open_donate_page)
+
+        self.save_settings_button.grid(row=2, column=0, padx=10, pady=10)
+        self.check_update_button.grid(row=2, column=1, padx=10, pady=10)
+        self.donate_button.grid(row=2, column=2, padx=30, pady=10)
+
+    def open_donate_page(self):
+        webbrowser.open("https://img.vietqr.io/image/TPB-0964710413-print.png?addInfo=Donate%20AIO%20Tool%20Media&accountName=VU%20DUY%20THAO")
 
     def check_for_update(self):
         try:
@@ -151,7 +157,7 @@ class AIOMediaTool(tk.Tk):
                 self.feature_selection_tab.select(self.get_tab_by_index(self.startup_tab_combobox.current()))
         except FileNotFoundError:
             # Nếu config.json không có, sử dụng giá trị mặc định
-            self.startup_tab_var.set("Cắt Video")
+            self.startup_tab_var.set("✂ Cắt Video")
             self.set_gemini_api_key("")
             self.feature_selection_tab.select(self.video_cutter_tab)
 

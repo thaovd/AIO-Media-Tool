@@ -27,7 +27,7 @@ class AutoSubApp(tk.Frame):
         self.media_conversion_frame = ttk.LabelFrame(self, text="Lựa chọn file âm thanh để tạo subtitle", style="CustomLabelFrame.TLabelframe")
         self.media_conversion_frame.pack(padx=20, pady=20, fill="both", expand=True)
 
-        self.upload_button = tk.Button(self.media_conversion_frame, text="Upload Audio", command=self.upload_audio)
+        self.upload_button = tk.Button(self.media_conversion_frame, text="🚀 Upload Audio", command=self.upload_audio)
         self.upload_button.pack(pady=20)
 
         # Create a preview box for the subtitle
@@ -35,7 +35,7 @@ class AutoSubApp(tk.Frame):
         self.subtitle_preview.pack(pady=20)
 
         # Create a button to export the subtitle
-        self.export_button = tk.Button(self.media_conversion_frame, text="Lưu Subtitle", command=lambda: self.save_subtitle(self.subtitle_preview.get("1.0", tk.END).strip()))
+        self.export_button = tk.Button(self.media_conversion_frame, text="💾 Lưu Subtitle", command=lambda: self.save_subtitle(self.subtitle_preview.get("1.0", tk.END).strip()))
         self.export_button.pack(pady=20)
 
     def upload_audio(self):
@@ -48,6 +48,8 @@ class AutoSubApp(tk.Frame):
                 myfile = genai.upload_file(converted_audio)
                 print(f"{myfile=}")
                 self.generate_subtitle(myfile, self.selected_model.get(), self.parent.get_gemini_api_key())
+                # Delete the temporary MP3 file after subtitle generation
+                os.remove(converted_audio)
         except Exception as e:
             print(f"Lỗi khi tải tệp âm thanh lên: {e}")
             self.parent.status_bar.config(text="Lỗi khi tải tệp âm thanh lên!", style="CustomStatusBar.TLabel")
@@ -57,7 +59,7 @@ class AutoSubApp(tk.Frame):
     def convert_to_mp3(self, input_file):
         try:
             # Create a temporary output file name
-            output_file = os.path.splitext(input_file)[0] + ".mp3"
+            output_file = os.path.splitext(input_file)[0] + "_tempconvert.mp3"
 
             # Use ffmpeg to convert the input file to MP3 64kbps
             subprocess.run(["ffmpeg", "-y", "-i", input_file, "-b:a", "96k", "-c:a", "libmp3lame", output_file], check=True)
