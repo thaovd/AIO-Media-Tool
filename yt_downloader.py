@@ -7,7 +7,6 @@ from io import BytesIO
 from PIL import Image, ImageTk
 import requests
 import re
-import subprocess
 
 script_dir = "ffmpeg.exe"
 ffmpeg_path = script_dir
@@ -43,39 +42,39 @@ class YTDownloader:
         self.save_location_entry = ttk.Entry(self.yt_downloader_frame, textvariable=self.save_location_var, style="CustomEntry.TEntry")
         self.save_location_entry.grid(row=1, column=1, padx=10, pady=20, sticky="we")
 
-        self.save_location_button = ttk.Button(self.yt_downloader_frame, text="👆 Chọn Folder", command=self.choose_save_location, style="CustomButton.TButton")
+        self.save_location_button = ttk.Button(self.yt_downloader_frame, text="Chọn Folder", command=self.choose_save_location, style="CustomButton.TButton")
         self.save_location_button.grid(row=1, column=2, padx=10, pady=5, sticky="w")
 
-        self.audio_only_button = ttk.Button(self.yt_downloader_frame, text="♫ Audio only", command=lambda: self.download_audio_only(), style="CustomButton.TButton")
+        self.audio_only_button = ttk.Button(self.yt_downloader_frame, text="Audio only", command=lambda: self.download_audio_only(), style="CustomButton.TButton")
         self.audio_only_button.grid(row=2, column=0, padx=10, pady=5, sticky="w")
 
-        self.video_only_button = ttk.Button(self.yt_downloader_frame, text="▶ Video only (Max)", command=lambda: self.download_video_only(), style="CustomButton.TButton")
+        self.video_only_button = ttk.Button(self.yt_downloader_frame, text="Video only (Max)", command=lambda: self.download_video_only(), style="CustomButton.TButton")
         self.video_only_button.grid(row=2, column=1, padx=10, pady=5, sticky="w")
 
-        self.audio_video_button = ttk.Button(self.yt_downloader_frame, text="🎬 A+V (Max)", command=lambda: self.download_audio_and_video(), style="CustomButton.TButton")
+        self.audio_video_button = ttk.Button(self.yt_downloader_frame, text="A+V (Max)", command=lambda: self.download_audio_and_video(), style="CustomButton.TButton")
         self.audio_video_button.grid(row=2, column=2, padx=10, pady=5, sticky="w")
 
-        self.tiktok_button = ttk.Button(self.yt_downloader_frame, text="🎶 A+V Tiktok (Max)", command=lambda: self.download_tiktok(), style="CustomButton.TButton")
+        self.tiktok_button = ttk.Button(self.yt_downloader_frame, text="A+V Tiktok (Max)", command=lambda: self.download_tiktok(), style="CustomButton.TButton")
         self.tiktok_button.grid(row=3, column=0, padx=10, pady=5, sticky="w")
 
-        self.custom_download_button = ttk.Button(self.yt_downloader_frame, text="☰ Lựa chọn chất lượng khác", command=self.show_custom_download_popup, style="CustomButton.TButton")
+        self.custom_download_button = ttk.Button(self.yt_downloader_frame, text="Lựa chọn chất lượng khác", command=self.show_custom_download_popup, style="CustomButton.TButton")
         self.custom_download_button.grid(row=3, column=1, padx=10, pady=5, sticky="w")
 
         self.m3u8_button = ttk.Button(self.yt_downloader_frame, text="Download m3u8 Video", command=lambda: self.download_m3u8(), style="CustomButton.TButton")
         self.m3u8_button.grid(row=3, column=2, padx=10, pady=5, sticky="w")
 
         # Playlist download button
-        self.playlist_download_button = ttk.Button(self.yt_downloader_frame, text="📼 Download Playlist", command=self.download_playlist, style="CustomButton.TButton")
+        self.playlist_download_button = ttk.Button(self.yt_downloader_frame, text="Download Playlist", command=self.download_playlist, style="CustomButton.TButton")
         self.playlist_download_button.grid(row=4, column=0, padx=10, pady=5, sticky="w")
 
-        self.open_yt_folder_button = ttk.Button(self.yt_downloader_frame, text="📁 Mở thư mục Download", command=self.open_folder, style="CustomButton.TButton")
+        self.open_yt_folder_button = ttk.Button(self.yt_downloader_frame, text="Mở thư mục Download", command=self.open_folder, style="CustomButton.TButton")
         self.open_yt_folder_button.grid(row=4, column=1, columnspan=2, padx=10, pady=5, sticky="w")
 
         self.progress_bar = ttk.Progressbar(self.yt_downloader_frame, mode='determinate', length=540)  # Increased progress bar length to 500 pixels
         self.progress_bar.grid(row=5, column=0, columnspan=3, padx=10, pady=10)
 
         # Guide Button
-        self.user_guide_button = ttk.Button(self.yt_downloader_frame, text="📜 Hướng Dẫn Sử Dụng", command=self.show_user_guide, style="CustomButton.TButton")
+        self.user_guide_button = ttk.Button(self.yt_downloader_frame, text="Hướng Dẫn Sử Dụng", command=self.show_user_guide, style="CustomButton.TButton")
         self.user_guide_button.grid(row=4, column=2, padx=10, pady=5, sticky="w" )
 
         # Video information
@@ -224,6 +223,7 @@ class YTDownloader:
 
         resolutions_text = f"Độ phân giải: {video_info['resolutions']}"
         self.resolutions_label.configure(text=resolutions_text, wraplength=350)
+
         self.length_label.configure(text=f"Thời lượng: {video_info['length']}")
 
     def show_user_guide(self):
@@ -282,6 +282,7 @@ class YTDownloader:
         else:
             self.app.status_bar.config(text="Vui lòng chọn Folder lưu trước khi tải xuống.", style="CustomStatusBar.TLabel")
             self.master.update()
+
 
     def download_audio_and_video(self):
         if self.save_location_var.get():
@@ -499,13 +500,6 @@ class YTDownloader:
             if 'drive.google.com' in video_url:
                 self.app.status_bar.config(text="Đây là URL Google Drive. Vui lòng sử dụng tính năng 'Lựa chọn chất lượng khác' để tải xuống.", style="CustomStatusBar.TLabel")
                 self.master.update()
-                self.custom_download_button.config(state='normal')
-                self.audio_only_button.config(state='disabled')
-                self.video_only_button.config(state='disabled')
-                self.audio_video_button.config(state='disabled')
-                self.tiktok_button.config(state='disabled')
-                self.m3u8_button.config(state='disabled')
-                self.playlist_download_button.config(state='disabled')
                 return
 
             # Get video information
@@ -513,85 +507,29 @@ class YTDownloader:
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 info = ydl.extract_info(video_url, download=False)
                 title = info.get('title', 'Unknown')
-                vcodec = info.get('vcodec', 'none')
-                ext = info.get('ext', 'mp4')
 
             # Sanitize the title to remove special characters
             sanitized_title = self.sanitize_filename(title)
-            output_file = os.path.join(save_location, f"{sanitized_title}.{ext}")
-            print(f"{output_file}")
+            output_file = f"{save_location}/{sanitized_title}.%(id)s.%(ext)s"
 
-            # Check if the video codec is different from avc1
-            if vcodec != 'avc1.42001E':
-                response = messagebox.askyesnocancel("Xác nhận Download", f"Video này là Codec {vcodec} không phù hợp với Adobe Premiere Pro. Bạn có muốn chuyển đổi sang h264 không?")
-                if response is None:
-                    return
-                elif response:
-                    self.app.status_bar.config(text="Đang tải xuống...", style="CustomStatusBar.TLabel")
-                    self.master.update()
+            self.app.status_bar.config(text="Đang tải xuống...", style="CustomStatusBar.TLabel")
+            self.master.update()
 
-                    try:
-                        ydl_opts = {
-                            'outtmpl': output_file,
-                            'format': format if format else 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
-                            'quiet': True,
-                            'no_warnings': True,
-                            'ignoreerrors': True,
-                            'progress_hooks': [self.show_progress],
-                            'ffmpeg_location': ffmpeg_path,
-                        }
-                        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                            ydl.download([video_url])
-
-                        # Convert the video to h264 format using ffmpeg
-                        self.app.status_bar.config(text="Đang chuyển đổi định dạng codec video...", style="CustomStatusBar.TLabel")
-                        self.master.update()
-                        converted_file = os.path.splitext(output_file)[0] + "_convert.mp4"
-                        subprocess.run([ffmpeg_path, "-y", "-hwaccel", "cuda", "-i", output_file, "-c:v", "libx264", "-crf", "23", converted_file], check=True)
-                        os.remove(output_file)
-                        self.app.status_bar.config(text="Hoàn thành.", style="CustomStatusBar.TLabel")
-                        messagebox.showinfo("Hoàn thành", "Đã tải xuống và chuyển đổi codec của video thành avc1.h264.")
-
-                    except Exception as e:
-                        self.app.status_bar.config(text="Lỗi không xác định, vui lòng thử lại sau.", style="CustomStatusBar.TLabel")
-                elif response == False:
-                    self.app.status_bar.config(text="Đang tải xuống...", style="CustomStatusBar.TLabel")
-                    self.master.update()
-
-                    try:
-                        ydl_opts = {
-                            'outtmpl': output_file,
-                            'format': format if format else 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
-                            'quiet': True,
-                            'no_warnings': True,
-                            'ignoreerrors': True,
-                            'progress_hooks': [self.show_progress],
-                            'ffmpeg_location': ffmpeg_path,
-                        }
-                        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                            ydl.download([video_url])
-                        self.app.status_bar.config(text="Đã tải xuống.", style="CustomStatusBar.TLabel")
-                    except Exception as e:
-                        self.app.status_bar.config(text="Lỗi không xác định, vui lòng thử lại sau.", style="CustomStatusBar.TLabel")
-            else:
-                self.app.status_bar.config(text="Đang tải xuống...", style="CustomStatusBar.TLabel")
-                self.master.update()
-
-                try:
-                    ydl_opts = {
-                        'outtmpl': output_file,
-                        'format': format if format else 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
-                        'quiet': True,
-                        'no_warnings': True,
-                        'ignoreerrors': True,
-                        'progress_hooks': [self.show_progress],
-                        'ffmpeg_location': ffmpeg_path,
-                    }
-                    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                        ydl.download([video_url])
-                    self.app.status_bar.config(text="Đã tải xuống.", style="CustomStatusBar.TLabel")
-                except Exception as e:
-                    self.app.status_bar.config(text="Lỗi không xác định, vui lòng thử lại sau.", style="CustomStatusBar.TLabel")
+            try:
+                ydl_opts = {
+                    'outtmpl': output_file,
+                    'format': format if format else 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
+                    'quiet': True,
+                    'no_warnings': True,
+                    'ignoreerrors': True,
+                    'progress_hooks': [self.show_progress],
+                    'ffmpeg_location': ffmpeg_path,
+                }
+                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                    ydl.download([video_url])
+                self.app.status_bar.config(text="Đã tải xuống.", style="CustomStatusBar.TLabel")
+            except Exception as e:
+                self.app.status_bar.config(text="Lỗi không xác định, vui lòng thử lại sau.", style="CustomStatusBar.TLabel")
         else:
             self.app.status_bar.config(text="Vui lòng chọn Folder lưu trước khi tải xuống.", style="CustomStatusBar.TLabel")
             self.master.update()
@@ -601,7 +539,6 @@ class YTDownloader:
         Sanitize the filename by removing special characters that may cause issues when saving the file.
         """
         return re.sub(r'[^\w\-_\. ]', '_', filename)
-
 
     def open_folder(self):
         save_location = self.save_location_var.get()

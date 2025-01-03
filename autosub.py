@@ -38,7 +38,7 @@ class AutoSubGUI:
         self.file_entry = tk.Entry(master, textvariable=self.file_path, width=60)
         self.file_entry.grid(row=0, column=1, padx=10, pady=10)
 
-        self.file_button = tk.Button(master, text="👆 Chọn file", command=self.select_file)
+        self.file_button = tk.Button(master, text="Chọn file", command=self.select_file)
         self.file_button.grid(row=0, column=2, padx=10, pady=10)
 
         # Source language selection
@@ -60,11 +60,11 @@ class AutoSubGUI:
         self.dst_dropdown.grid(row=2, column=1, padx=10, pady=10)
 
         # Submit button
-        self.submit_button = tk.Button(master, text="🚀 Tạo Subtitles", command=self.submit)
+        self.submit_button = tk.Button(master, text="Tạo Subtitles", command=self.submit)
         self.submit_button.grid(row=3, column=1, padx=10, pady=10)
 
         # Open Save Folder button
-        self.open_folder_button = tk.Button(master, text="📁 Mở thư mục lưu", command=self.open_save_folder)
+        self.open_folder_button = tk.Button(master, text="Mở thư mục lưu", command=self.open_save_folder)
         self.open_folder_button.grid(row=4, column=1, padx=10, pady=10)
 
     def select_file(self):
@@ -380,7 +380,7 @@ def main(source_path, source_lang, dst_lang, status_bar_update_func, completion_
         with open(dest, 'wb') as f:
             f.write(formatted_subtitles.encode("utf-8"))
 
-        flac_dest = "{base}_tempconvert.flac".format(base=base)
+        flac_dest = "{base}.flac".format(base=base)
         if os.path.exists(flac_dest):
             os.remove(flac_dest)
 
