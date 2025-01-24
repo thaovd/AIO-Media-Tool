@@ -50,3 +50,4 @@ if __name__ == "__main__":
     print(f"Title: {video_info['title']}")
     print(f"Length: {video_info['length']}")
     print(f"Resolutions: {video_info['resolutions']}")
+

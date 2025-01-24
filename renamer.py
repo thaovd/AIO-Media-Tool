@@ -35,6 +35,9 @@ class BatchFileRenamer:
         self.mode_combobox.current(0)
         self.mode_combobox.pack(side=tk.LEFT, padx=10)
 
+        # Bind the mode selection combobox to update_preview
+        self.mode_combobox.bind("<<ComboboxSelected>>", self.update_preview)
+
         # Create the character entry label and entry
         self.char_label = tk.Label(self.operation_frame, text="Ký tự yêu cầu:")
         self.char_label.pack(side=tk.LEFT)
@@ -83,7 +86,7 @@ class BatchFileRenamer:
                     base, ext = os.path.splitext(filename)
                     new_filename = base + char + ext
                 self.preview_listbox.insert(tk.END, new_filename)
-
+                
     def rename_files(self):
         directory = self.input_entry.get()
         mode = self.mode_combobox.get()
@@ -106,4 +109,5 @@ class BatchFileRenamer:
             os.rename(old_path, new_path)
 
         self.update_preview()
+        tk.messagebox.showinfo("Hoàn thành", "Tên file đã được đổi tên.")
         tk.messagebox.showinfo("Hoàn thành", "Tên file đã được đổi tên.")
